@@ -1,9 +1,17 @@
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 const prisma = new PrismaClient();
 
 export async function POST(request) {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
         const body = await request.json();
         const { type, description, location, photoUrl } = body;
@@ -20,9 +28,9 @@ export async function POST(request) {
             data: {
                 type,
                 description,
-                location: JSON.stringify(location), // Store as JSON string
+                location: typeof location === 'string' ? location : JSON.stringify(location),
                 photoUrl,
-                userId: "user-1", // Mock user ID
+                userId: session.user.id,
             },
         });
 
@@ -36,13 +44,36 @@ export async function POST(request) {
     }
 }
 
-export async function GET() {
+// GET all incidents (filtered by user or all for admins)
+export async function GET(request) {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
+        const isAdmin = session.user.role === "ADMIN";
+
         const incidents = await prisma.incident.findMany({
+            where: isAdmin ? {} : { userId: session.user.id },
             orderBy: { createdAt: "desc" },
+            ...(isAdmin && {
+                include: {
+                    user: {
+                        select: {
+                            id: true,
+                            email: true,
+                            name: true,
+                        },
+                    },
+                },
+            }),
         });
+
         return NextResponse.json(incidents);
     } catch (error) {
+        console.error("Error fetching incidents:", error);
         return NextResponse.json(
             { error: "Internal Server Error" },
             { status: 500 }

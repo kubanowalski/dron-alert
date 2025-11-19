@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 
 const MapView = dynamic(() => import("@/components/Map/MapView"), { ssr: false });
@@ -10,16 +11,56 @@ const MapPicker = dynamic(() => import("@/components/Map/MapPicker"), { ssr: fal
 export default function IncidentDetailsPage() {
     const { id } = useParams();
     const router = useRouter();
+    const { data: session } = useSession();
     const [incident, setIncident] = useState(null);
     const [loading, setLoading] = useState(true);
     const [isEditing, setIsEditing] = useState(false);
     const [formData, setFormData] = useState({});
+    const [message, setMessage] = useState({ type: '', text: '' });
+    const [showConfirm, setShowConfirm] = useState(false);
 
-    // Mock admin check - in real app check session
-    // For MVP, we can add a toggle or just assume everyone can edit their own, 
-    // and maybe a special URL or button to simulate Admin.
-    // Let's add a "Simulate Admin" button for demo purposes.
-    const [isAdmin, setIsAdmin] = useState(false);
+    const isAdmin = session?.user?.role === "ADMIN";
+
+    const getTypeLabel = (type) => {
+        const typeMap = {
+            'RESTRICTED_ZONE': 'Strefa zakazana',
+            'PRIVACY_VIOLATION': 'Naruszenie prywatności',
+            'DANGEROUS_FLIGHT': 'Niebezpieczny lot',
+            'OTHER': 'Inne',
+        };
+        return typeMap[type] || type;
+    };
+
+    const getStatusLabel = (status) => {
+        const statusMap = {
+            'REPORTED': 'Zgłoszono',
+            'ACCEPTED': 'Zaakceptowano',
+            'REJECTED': 'Odrzucono',
+            'CANCELLED': 'Anulowano',
+            'ARCHIVED': 'Zarchiwizowano',
+        };
+        return statusMap[status] || status;
+    };
+
+    const getStatusBadgeClass = (status) => {
+        const statusMap = {
+            'REPORTED': 'badge-reported',
+            'ACCEPTED': 'badge-accepted',
+            'REJECTED': 'badge-rejected',
+            'CANCELLED': 'badge-cancelled',
+            'ARCHIVED': 'badge-archived',
+        };
+        return `badge ${statusMap[status] || 'badge-reported'}`;
+    };
+
+    const getLocationText = (locationStr) => {
+        try {
+            const location = JSON.parse(locationStr);
+            return location.address || `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`;
+        } catch {
+            return "Nieznana lokalizacja";
+        }
+    };
 
     useEffect(() => {
         fetch(`/api/incidents/${id}`)
@@ -40,6 +81,7 @@ export default function IncidentDetailsPage() {
     }, [id]);
 
     const handleUpdate = async () => {
+        setMessage({ type: '', text: '' });
         const res = await fetch(`/api/incidents/${id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -49,21 +91,40 @@ export default function IncidentDetailsPage() {
             const updated = await res.json();
             setIncident(updated);
             setIsEditing(false);
+            setMessage({ type: 'success', text: 'Zgłoszenie zaktualizowane pomyślnie' });
+        } else {
+            setMessage({ type: 'error', text: 'Błąd podczas aktualizacji zgłoszenia' });
         }
     };
 
     const handleCancel = async () => {
-        if (!confirm("Czy na pewno chcesz anulować zgłoszenie?")) return;
-        const res = await fetch(`/api/incidents/${id}`, {
-            method: "DELETE",
-        });
-        if (res.ok) {
-            const updated = await res.json();
-            setIncident(updated);
+        console.log("Starting cancel...");
+        setMessage({ type: '', text: '' });
+        setShowConfirm(false);
+
+        try {
+            const res = await fetch(`/api/incidents/${id}`, {
+                method: "DELETE",
+            });
+
+            if (res.ok) {
+                const updated = await res.json();
+                console.log("Cancel successful, updated:", updated);
+                setIncident(updated);
+                setMessage({ type: 'success', text: 'Zgłoszenie zostało anulowane' });
+                console.log("Message set to success");
+            } else {
+                console.error("Cancel failed");
+                setMessage({ type: 'error', text: 'Błąd podczas anulowania zgłoszenia' });
+            }
+        } catch (error) {
+            console.error("Cancel error:", error);
+            setMessage({ type: 'error', text: 'Błąd podczas anulowania zgłoszenia' });
         }
     };
 
     const handleStatusChange = async (newStatus) => {
+        setMessage({ type: '', text: '' });
         const res = await fetch(`/api/incidents/${id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -72,101 +133,178 @@ export default function IncidentDetailsPage() {
         if (res.ok) {
             const updated = await res.json();
             setIncident(updated);
+            setMessage({ type: 'success', text: 'Status zgłoszenia zmieniony pomyślnie' });
+        } else {
+            setMessage({ type: 'error', text: 'Błąd podczas zmiany statusu' });
         }
     };
 
-    if (loading) return <p>Ładowanie...</p>;
-    if (!incident) return <p>Nie znaleziono zgłoszenia.</p>;
+    if (loading) return <div className="loading">Ładowanie...</div>;
+    if (!incident) return <p className="text-muted">Nie znaleziono zgłoszenia.</p>;
 
     return (
         <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-                <h1>Szczegóły Zgłoszenia</h1>
-                <button onClick={() => setIsAdmin(!isAdmin)} className="btn" style={{ fontSize: "0.8rem", border: "1px solid var(--border)" }}>
-                    {isAdmin ? "Tryb Admina: WŁ" : "Tryb Admina: WYŁ"}
-                </button>
+            {/* Custom Confirm Modal */}
+            {showConfirm && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 9999
+                }}>
+                    <div style={{
+                        backgroundColor: 'var(--color-surface)',
+                        padding: 'var(--space-xl)',
+                        borderRadius: 'var(--border-radius)',
+                        maxWidth: '400px',
+                        width: '90%',
+                        border: 'var(--border-width) solid var(--color-border)'
+                    }}>
+                        <h3 className="mb-md">Potwierdzenie</h3>
+                        <p className="mb-lg">Czy na pewno chcesz anulować to zgłoszenie?</p>
+                        <div style={{ display: 'flex', gap: 'var(--space-md)', justifyContent: 'flex-end' }}>
+                            <button onClick={() => setShowConfirm(false)} className="btn btn-secondary">
+                                Nie
+                            </button>
+                            <button onClick={handleCancel} className="btn btn-danger">
+                                Tak, anuluj
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div className="flex-between mb-xl">
+                <h1>Szczegóły zgłoszenia</h1>
             </div>
 
+            {message.text && (
+                <div style={{
+                    padding: "var(--space-md)",
+                    backgroundColor: message.type === 'success' ? "#dcfce7" : "#fee2e2",
+                    color: message.type === 'success' ? "#166534" : "#991b1b",
+                    borderRadius: "var(--border-radius)",
+                    marginBottom: "var(--space-lg)",
+                    border: `var(--border-width) solid ${message.type === 'success' ? '#16a34a' : '#dc2626'}`
+                }}>
+                    {message.text}
+                </div>
+            )}
+
             <div className="card">
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1rem" }}>
-                    <span style={{ color: "var(--text-muted)" }}>ID: {incident.id}</span>
-                    <span style={{
-                        fontWeight: "bold",
-                        color: incident.status === "CANCELLED" ? "var(--secondary)" : "var(--primary)"
-                    }}>
-                        {incident.status}
+                <div className="flex-between mb-lg">
+                    <div>
+                        <h2 className="mb-xs">{getTypeLabel(incident.type)}</h2>
+                        <p className="text-xs text-muted mb-0">
+                            {new Date(incident.createdAt).toLocaleDateString("pl-PL", {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}
+                        </p>
+                    </div>
+                    <span className={getStatusBadgeClass(incident.status)}>
+                        {getStatusLabel(incident.status)}
                     </span>
                 </div>
 
-                {isEditing ? (
+                {!isEditing && (
                     <>
-                        <div style={{ marginBottom: "1rem" }}>
-                            <label>Typ</label>
+                        <div className="mb-lg">
+                            <h3 className="mb-sm" style={{ fontSize: "var(--font-size-base)", fontWeight: 600 }}>Opis</h3>
+                            <p className="text-muted mb-0">{incident.description}</p>
+                        </div>
+
+                        <div className="mb-lg">
+                            <h3 className="mb-sm" style={{ fontSize: "var(--font-size-base)", fontWeight: 600 }}>Lokalizacja</h3>
+                            <p className="text-muted mb-sm">📍 {getLocationText(incident.location)}</p>
+                            <div style={{ border: "var(--border-width) solid var(--color-border)", borderRadius: "var(--border-radius)", overflow: "hidden" }}>
+                                <MapView location={JSON.parse(incident.location)} />
+                            </div>
+                        </div>
+
+                        {incident.status !== "CANCELLED" && (
+                            <div style={{ display: "flex", gap: "var(--space-md)", flexWrap: "wrap" }}>
+                                <button onClick={() => setIsEditing(true)} className="btn btn-secondary">
+                                    Edytuj
+                                </button>
+                                <button onClick={() => setShowConfirm(true)} className="btn btn-danger">
+                                    Anuluj zgłoszenie
+                                </button>
+                            </div>
+                        )}
+                    </>
+                )}
+
+                {isEditing && (
+                    <>
+                        <div className="form-group">
+                            <label className="form-label">Typ incydentu</label>
                             <select
-                                className="input"
+                                className="select"
                                 value={formData.type}
                                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                             >
-                                <option value="strefa_zakazana">Strefa Zakazana</option>
-                                <option value="podejrzenie_szpiegowania">Podejrzenie Szpiegowania</option>
-                                <option value="niebezpieczna_odleglosc">Niebezpieczna Odległość</option>
-                                <option value="inne">Inne</option>
+                                <option value="RESTRICTED_ZONE">Strefa zakazana</option>
+                                <option value="PRIVACY_VIOLATION">Naruszenie prywatności</option>
+                                <option value="DANGEROUS_FLIGHT">Niebezpieczny lot</option>
+                                <option value="OTHER">Inne</option>
                             </select>
                         </div>
-                        <div style={{ marginBottom: "1rem" }}>
-                            <label>Opis</label>
+
+                        <div className="form-group">
+                            <label className="form-label">Opis</label>
                             <textarea
-                                className="input"
+                                className="textarea"
                                 value={formData.description}
                                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             />
                         </div>
-                        <div style={{ marginBottom: "1rem" }}>
-                            <label>Zmień Lokalizację</label>
-                            <div style={{ height: "300px", borderRadius: "var(--radius)", overflow: "hidden" }}>
+
+                        <div className="form-group">
+                            <label className="form-label">Zmień lokalizację</label>
+                            <div style={{ border: "var(--border-width) solid var(--color-border)", borderRadius: "var(--border-radius)", overflow: "hidden" }}>
                                 <MapPicker onLocationSelect={(loc) => setFormData({ ...formData, location: loc })} />
                             </div>
                         </div>
-                        <div style={{ display: "flex", gap: "0.5rem" }}>
+
+                        <div style={{ display: "flex", gap: "var(--space-md)" }}>
                             <button onClick={handleUpdate} className="btn btn-primary">Zapisz</button>
-                            <button onClick={() => setIsEditing(false)} className="btn">Anuluj</button>
-                        </div>
-                    </>
-                ) : (
-                    <>
-                        <h2 style={{ textTransform: "capitalize" }}>{incident.type.replace(/_/g, " ")}</h2>
-                        <p style={{ fontSize: "1.1rem", marginBottom: "1.5rem" }}>{incident.description}</p>
-
-                        <div style={{ marginBottom: "1.5rem", borderRadius: "var(--radius)", overflow: "hidden" }}>
-                            <MapView location={JSON.parse(incident.location)} />
-                        </div>
-
-                        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
-                            {incident.status !== "CANCELLED" && (
-                                <>
-                                    <button onClick={() => setIsEditing(true)} className="btn" style={{ border: "1px solid var(--border)" }}>
-                                        Edytuj
-                                    </button>
-                                    <button onClick={handleCancel} className="btn btn-secondary">
-                                        Anuluj Zgłoszenie
-                                    </button>
-                                </>
-                            )}
+                            <button onClick={() => setIsEditing(false)} className="btn btn-secondary">Anuluj</button>
                         </div>
                     </>
                 )}
 
                 {isAdmin && (
-                    <div style={{ marginTop: "2rem", borderTop: "1px solid var(--border)", paddingTop: "1rem" }}>
-                        <h3>Panel Administratora</h3>
-                        <div style={{ display: "flex", gap: "0.5rem" }}>
-                            <button onClick={() => handleStatusChange("ACCEPTED")} className="btn" style={{ backgroundColor: "#22c55e", color: "white" }}>
+                    <div style={{ marginTop: "var(--space-2xl)", paddingTop: "var(--space-xl)", borderTop: "var(--border-width) solid var(--color-border)" }}>
+                        <h3 className="mb-lg">Panel administratora</h3>
+                        <div style={{ display: "flex", gap: "var(--space-md)", flexWrap: "wrap" }}>
+                            <button
+                                onClick={() => handleStatusChange("ACCEPTED")}
+                                className="btn"
+                                style={{ backgroundColor: "#16a34a", color: "white", borderColor: "#16a34a" }}
+                            >
                                 Zatwierdź
                             </button>
-                            <button onClick={() => handleStatusChange("REJECTED")} className="btn" style={{ backgroundColor: "#ef4444", color: "white" }}>
+                            <button
+                                onClick={() => handleStatusChange("REJECTED")}
+                                className="btn"
+                                style={{ backgroundColor: "#dc2626", color: "white", borderColor: "#dc2626" }}
+                            >
                                 Odrzuć
                             </button>
-                            <button onClick={() => handleStatusChange("ARCHIVED")} className="btn" style={{ backgroundColor: "#64748b", color: "white" }}>
+                            <button
+                                onClick={() => handleStatusChange("ARCHIVED")}
+                                className="btn btn-secondary"
+                            >
                                 Archiwizuj
                             </button>
                         </div>

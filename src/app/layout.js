@@ -1,5 +1,6 @@
 import "./globals.css";
 import Layout from "@/components/Layout";
+import AuthProvider from '@/components/AuthProvider';
 
 export const metadata = {
   title: "DronAlert",
@@ -8,9 +9,13 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="pl">
+    <html lang="pl" suppressHydrationWarning>
       <body>
-        <Layout>{children}</Layout>
+        <div className="layout-wrapper">
+          <AuthProvider>
+            <Layout>{children}</Layout>
+          </AuthProvider>
+        </div>
       </body>
     </html>
   );

@@ -7,6 +7,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  password  String
+  name      String?
+  firstName String?
+  lastName  String?
+  role      String    @default("USER")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  incidents Incident[]
+}
+
 model Incident {
   id          String   @id @default(uuid())
   createdAt   DateTime @default(now())
@@ -16,4 +29,5 @@ model Incident {
   status      String   @default("REPORTED")
   photoUrl    String?
   userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

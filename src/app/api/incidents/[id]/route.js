@@ -1,11 +1,14 @@
 import { PrismaClient } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../../auth/[...nextauth]/route";
 
 const prisma = new PrismaClient();
 
+// GET single incident
 export async function GET(request, { params }) {
     try {
-        const { id } = params;
+        const { id } = await params;
         const incident = await prisma.incident.findUnique({
             where: { id },
         });
@@ -16,17 +19,50 @@ export async function GET(request, { params }) {
 
         return NextResponse.json(incident);
     } catch (error) {
+        console.error("Error fetching incident:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
 
+// PATCH update incident
 export async function PATCH(request, { params }) {
-    try {
-        const { id } = params;
-        const body = await request.json();
+    const session = await getServerSession(authOptions);
 
-        // Allow updating specific fields
+    if (!session) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    try {
+        const { id } = await params;
+        const body = await request.json();
         const { description, type, status, location } = body;
+
+        // Check if trying to update status - only admins can do this
+        if (status && session.user.role !== "ADMIN") {
+            return NextResponse.json(
+                { error: "Forbidden: Only administrators can change incident status" },
+                { status: 403 }
+            );
+        }
+
+        // For non-status updates, verify ownership
+        if (!status) {
+            const incident = await prisma.incident.findUnique({
+                where: { id },
+                select: { userId: true },
+            });
+
+            if (!incident) {
+                return NextResponse.json({ error: "Incident not found" }, { status: 404 });
+            }
+
+            if (incident.userId !== session.user.id && session.user.role !== "ADMIN") {
+                return NextResponse.json(
+                    { error: "Forbidden: You can only edit your own incidents" },
+                    { status: 403 }
+                );
+            }
+        }
 
         const updatedIncident = await prisma.incident.update({
             where: { id },
@@ -34,24 +70,44 @@ export async function PATCH(request, { params }) {
                 ...(description && { description }),
                 ...(type && { type }),
                 ...(status && { status }),
-                ...(location && { location: JSON.stringify(location) }),
+                ...(location && { location: typeof location === 'string' ? location : JSON.stringify(location) }),
             },
         });
 
         return NextResponse.json(updatedIncident);
     } catch (error) {
+        console.error("Error updating incident:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
 
+// DELETE/CANCEL incident (soft delete by setting status to CANCELLED)
 export async function DELETE(request, { params }) {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
-        const { id } = params;
-        // In a real app, we might just mark as cancelled instead of deleting
-        // But WF-05 says "Anulowanie", which could mean status change or delete.
-        // Let's assume status change to "CANCELLED" for history preservation, 
-        // or actual delete if it was a mistake. 
-        // Let's implement status change to CANCELLED as it's safer.
+        const { id } = await params;
+
+        // Verify ownership before cancelling
+        const incident = await prisma.incident.findUnique({
+            where: { id },
+            select: { userId: true },
+        });
+
+        if (!incident) {
+            return NextResponse.json({ error: "Incident not found" }, { status: 404 });
+        }
+
+        if (incident.userId !== session.user.id && session.user.role !== "ADMIN") {
+            return NextResponse.json(
+                { error: "Forbidden: You can only cancel your own incidents" },
+                { status: 403 }
+            );
+        }
 
         const updatedIncident = await prisma.incident.update({
             where: { id },
@@ -60,6 +116,7 @@ export async function DELETE(request, { params }) {
 
         return NextResponse.json(updatedIncident);
     } catch (error) {
+        console.error("Error cancelling incident:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

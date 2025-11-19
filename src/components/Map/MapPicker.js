@@ -7,8 +7,9 @@ import { useState, useEffect } from "react";
 
 // Fix for default marker icon
 const icon = L.icon({
-    iconUrl: "/images/marker-icon.png",
-    shadowUrl: "/images/marker-shadow.png",
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
     iconSize: [25, 41],
     iconAnchor: [12, 41],
 });
@@ -43,11 +44,29 @@ export default function MapPicker({ onLocationSelect }) {
 
     useEffect(() => {
         if (position) {
-            onLocationSelect(position);
+            // Reverse geocoding to get address
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.lat}&lon=${position.lng}&accept-language=pl`)
+                .then(res => res.json())
+                .then(data => {
+                    const address = data.display_name || `${position.lat.toFixed(4)}, ${position.lng.toFixed(4)}`;
+                    onLocationSelect({
+                        lat: position.lat,
+                        lng: position.lng,
+                        address: address
+                    });
+                })
+                .catch(() => {
+                    // Fallback to coordinates if geocoding fails
+                    onLocationSelect({
+                        lat: position.lat,
+                        lng: position.lng,
+                        address: null
+                    });
+                });
         }
     }, [position, onLocationSelect]);
 
-    if (!isMounted) return <p>Loading map...</p>;
+    if (!isMounted) return <p>Ładowanie mapy...</p>;
 
     return (
         <MapContainer
