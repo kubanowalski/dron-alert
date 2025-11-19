@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 export default function IncidentList({ incidents, showUserInfo = false, isAdmin = false }) {
-    if (incidents.length === 0) {
+    if (!Array.isArray(incidents) || incidents.length === 0) {
         return (
             <div className="card text-center">
                 <p className="text-muted mb-0">Brak zgłoszeń</p>

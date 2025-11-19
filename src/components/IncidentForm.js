@@ -40,7 +40,11 @@ export default function IncidentForm() {
                 }),
             });
 
-            if (!res.ok) throw new Error("Failed to create incident");
+            if (!res.ok) {
+                const text = await res.text();
+                console.error("Failed to create incident:", res.status, text);
+                throw new Error(`Failed to create incident: ${res.status} ${text}`);
+            }
 
             setSuccess(true);
 

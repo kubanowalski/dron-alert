@@ -3,13 +3,10 @@
 ## Zaplanowane na następną sesję
 
 ### 🔍 Wyszukiwanie lokalizacji w formularzu zgłoszenia
-- [ ] **FIX**: Usunąć duplikat wyświetlania wartości wyszukiwania
-- [ ] Dodać pole tekstowe z wyszukiwaniem w komponencie `MapPicker`
 - [ ] Implementacja forward geocoding (adres → współrzędne)
 - [ ] Autocomplete dla sugestii adresów podczas wpisywania
 - [ ] Wyśrodkowanie mapy na wybrany adres
-- [ ] Fallback do ręcznego wyboru na mapie
-- [ ] Usprawnienia UX (lepszy feedback, debounce)
+
 
 ### 🗺️ Mapa aktywnych zgłoszeń
 - [ ] Dodać interaktywną mapę na landing page

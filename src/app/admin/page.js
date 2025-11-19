@@ -37,7 +37,16 @@ export default function AdminPage() {
     const fetchIncidents = async () => {
         try {
             const res = await fetch("/api/incidents");
+            if (!res.ok) throw new Error("Failed to fetch incidents");
+
             const data = await res.json();
+
+            if (!Array.isArray(data)) {
+                console.error("Received invalid incidents data:", data);
+                setIncidents([]);
+                setLoading(false);
+                return;
+            }
 
             setIncidents(data);
 
@@ -53,6 +62,7 @@ export default function AdminPage() {
             setLoading(false);
         } catch (err) {
             console.error("Error fetching incidents:", err);
+            setIncidents([]);
             setLoading(false);
         }
     };

@@ -21,14 +21,24 @@ function LocationMarker({ position, setPosition, setAddress }) {
             map.flyTo(newPos, map.getZoom());
 
             // Reverse geocoding
-            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${newPos.lat}&lon=${newPos.lng}`)
-                .then((res) => res.json())
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${newPos.lat}&lon=${newPos.lng}`, {
+                headers: {
+                    'User-Agent': 'DronAlert/1.0'
+                }
+            })
+                .then((res) => {
+                    if (!res.ok) throw new Error('Geocoding failed');
+                    return res.json();
+                })
                 .then((data) => {
                     if (data.display_name) {
                         setAddress(data.display_name);
                     }
                 })
-                .catch((err) => console.error("Reverse geocoding error:", err));
+                .catch((err) => {
+                    console.warn("Reverse geocoding error:", err);
+                    // Silently fail - user can still use the coordinates
+                });
         },
     });
 

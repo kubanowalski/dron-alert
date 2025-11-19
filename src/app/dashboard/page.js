@@ -22,13 +22,26 @@ export default function DashboardPage() {
         }
 
         fetch("/api/incidents")
-            .then((res) => res.json())
+            .then(async (res) => {
+                if (!res.ok) {
+                    const text = await res.text();
+                    console.error("Fetch failed:", res.status, text);
+                    throw new Error(`Failed to fetch incidents: ${res.status} ${text}`);
+                }
+                return res.json();
+            })
             .then((data) => {
-                setIncidents(data);
+                if (Array.isArray(data)) {
+                    setIncidents(data);
+                } else {
+                    console.error("Received invalid incidents data:", data);
+                    setIncidents([]);
+                }
                 setLoading(false);
             })
             .catch((err) => {
                 console.error("Error fetching incidents:", err);
+                setIncidents([]);
                 setLoading(false);
             });
     }, [session, status, router]);
