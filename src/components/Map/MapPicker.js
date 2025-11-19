@@ -41,11 +41,36 @@ function LocationMarker({ position, setPosition, setAddress }) {
     return position === null ? null : <Marker position={position} />;
 }
 
-export default function MapPicker({ onLocationSelect }) {
-    const [position, setPosition] = useState({ lat: 52.2297, lng: 21.0122 });
-    const [address, setAddress] = useState("");
+export default function MapPicker({ onLocationSelect, initialLocation }) {
+    const [position, setPosition] = useState(initialLocation ? { lat: initialLocation.lat, lng: initialLocation.lng } : { lat: 52.2297, lng: 21.0122 });
+    const [address, setAddress] = useState(initialLocation?.address || "");
     const [searchQuery, setSearchQuery] = useState("");
     const [isSearching, setIsSearching] = useState(false);
+    const [suggestions, setSuggestions] = useState([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(async () => {
+            if (searchQuery.length < 3) {
+                setSuggestions([]);
+                setShowSuggestions(false);
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=pl&limit=5&addressdetails=1`
+                );
+                const data = await response.json();
+                setSuggestions(data);
+                setShowSuggestions(true);
+            } catch (error) {
+                console.error("Autocomplete error:", error);
+            }
+        }, 500);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [searchQuery]);
 
     const handleLocationSelect = useCallback((location) => {
         if (onLocationSelect) {
@@ -89,6 +114,56 @@ export default function MapPicker({ onLocationSelect }) {
         }
     };
 
+    const handleGeolocation = () => {
+        if (!navigator.geolocation) {
+            alert("Twoja przeglądarka nie obsługuje geolokalizacji.");
+            return;
+        }
+
+        setIsSearching(true);
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const newPos = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                };
+                setPosition(newPos);
+
+                // Reverse geocoding for the new position
+                fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${newPos.lat}&lon=${newPos.lng}`)
+                    .then((res) => res.json())
+                    .then((data) => {
+                        if (data.display_name) {
+                            setAddress(data.display_name);
+                        }
+                    })
+                    .catch((err) => console.error("Reverse geocoding error:", err))
+                    .finally(() => setIsSearching(false));
+            },
+            (error) => {
+                console.error("Geolocation error:", error);
+                let errorMsg = "Nie udało się pobrać lokalizacji.";
+                if (error.code === 1) errorMsg = "Brak zgody na udostępnienie lokalizacji.";
+                else if (error.code === 2) errorMsg = "Lokalizacja niedostępna.";
+                else if (error.code === 3) errorMsg = "Upłynął limit czasu żądania lokalizacji.";
+
+                alert(errorMsg);
+                setIsSearching(false);
+            }
+        );
+    };
+
+    const handleSuggestionClick = (suggestion) => {
+        const newPos = {
+            lat: parseFloat(suggestion.lat),
+            lng: parseFloat(suggestion.lon),
+        };
+        setPosition(newPos);
+        setAddress(suggestion.display_name);
+        setSearchQuery(suggestion.display_name);
+        setShowSuggestions(false);
+    };
+
     const handleSearchSubmit = (e) => {
         e.preventDefault();
         handleSearch(searchQuery);
@@ -97,7 +172,7 @@ export default function MapPicker({ onLocationSelect }) {
     return (
         <div>
             {/* Search Input */}
-            <div style={{ marginBottom: "var(--space-md)" }}>
+            <div style={{ marginBottom: "var(--space-md)", position: "relative" }}>
                 <div style={{ display: "flex", gap: "var(--space-sm)" }}>
                     <input
                         type="text"
@@ -118,11 +193,59 @@ export default function MapPicker({ onLocationSelect }) {
                         className="btn btn-secondary"
                         onClick={() => handleSearch(searchQuery)}
                         disabled={isSearching || searchQuery.length < 3}
+                        title="Szukaj adresu"
                     >
                         {isSearching ? "..." : "🔍"}
                     </button>
+                    <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={handleGeolocation}
+                        disabled={isSearching}
+                        title="Pobierz moją lokalizację"
+                    >
+                        📍
+                    </button>
                 </div>
+                {showSuggestions && suggestions.length > 0 && (
+                    <ul style={{
+                        listStyle: "none",
+                        padding: 0,
+                        margin: 0,
+                        position: "absolute",
+                        zIndex: 1000,
+                        backgroundColor: "var(--color-surface)",
+                        border: "var(--border-width) solid var(--color-border)",
+                        borderRadius: "var(--border-radius)",
+                        width: "100%",
+                        maxHeight: "200px",
+                        overflowY: "auto",
+                        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)"
+                    }}>
+                        {suggestions.map((suggestion) => (
+                            <li
+                                key={suggestion.place_id}
+                                onClick={() => handleSuggestionClick(suggestion)}
+                                style={{
+                                    padding: "var(--space-sm) var(--space-md)",
+                                    cursor: "pointer",
+                                    borderBottom: "1px solid var(--color-border)",
+                                    fontSize: "var(--font-size-sm)"
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "var(--color-background)"}
+                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "transparent"}
+                            >
+                                {suggestion.display_name}
+                            </li>
+                        ))}
+                    </ul>
+                )}
             </div>
+
+            {/* Address Display */}
+            <p className="text-xs text-muted" style={{ marginTop: 0, marginBottom: "var(--space-sm)" }}>
+                {address ? `📍 ${address}` : "Kliknij na mapie lub wyszukaj adres"}
+            </p>
 
             {/* Map */}
             <MapContainer
@@ -136,10 +259,6 @@ export default function MapPicker({ onLocationSelect }) {
                 />
                 <LocationMarker position={position} setPosition={setPosition} setAddress={setAddress} />
             </MapContainer>
-
-            <p className="text-xs text-muted" style={{ marginTop: "var(--space-sm)", marginBottom: 0 }}>
-                {address ? `📍 ${address}` : "Kliknij na mapie lub wyszukaj adres"}
-            </p>
         </div>
     );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
@@ -20,6 +20,10 @@ export default function IncidentDetailsPage() {
     const [showConfirm, setShowConfirm] = useState(false);
 
     const isAdmin = session?.user?.role === "ADMIN";
+
+    const handleLocationChange = useCallback((loc) => {
+        setFormData(prev => ({ ...prev, location: loc }));
+    }, []);
 
     const getTypeLabel = (type) => {
         const typeMap = {
@@ -226,7 +230,7 @@ export default function IncidentDetailsPage() {
                         <div className="mb-lg">
                             <h3 className="mb-sm" style={{ fontSize: "var(--font-size-base)", fontWeight: 600 }}>Lokalizacja</h3>
                             <p className="text-muted mb-sm">📍 {getLocationText(incident.location)}</p>
-                            <div style={{ border: "var(--border-width) solid var(--color-border)", borderRadius: "var(--border-radius)", overflow: "hidden" }}>
+                            <div style={{ borderRadius: "var(--border-radius)", overflow: "hidden" }}>
                                 <MapView location={JSON.parse(incident.location)} />
                             </div>
                         </div>
@@ -271,8 +275,11 @@ export default function IncidentDetailsPage() {
 
                         <div className="form-group">
                             <label className="form-label">Zmień lokalizację</label>
-                            <div style={{ border: "var(--border-width) solid var(--color-border)", borderRadius: "var(--border-radius)", overflow: "hidden" }}>
-                                <MapPicker onLocationSelect={(loc) => setFormData({ ...formData, location: loc })} />
+                            <div style={{ borderRadius: "var(--border-radius)", overflow: "hidden" }}>
+                                <MapPicker
+                                    initialLocation={formData.location}
+                                    onLocationSelect={handleLocationChange}
+                                />
                             </div>
                         </div>
 
