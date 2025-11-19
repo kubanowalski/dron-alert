@@ -1,159 +1,148 @@
-# 🤖 DronAlert
+# DronAlert 🚁
 
-System zgłaszania i monitorowania incydentów z dronami w przestrzeni publicznej.
+System do zgłaszania i zarządzania incydentami związanymi z dronami.
 
-> **Projekt edukacyjny** stworzony w ramach kursu "Zaawansowane technologie webowe" na AGH.
+**Projekt zaliczeniowy** na zajęcia _Zaawansowane Technologie Webowe_ | AGH 2025
 
-## 📋 Opis
+**Autorzy**: Sandra Lipniak, Jakub Nowalski, Julia Papée
 
-DronAlert to aplikacja webowa umożliwiająca:
-- 📝 Zgłaszanie obserwacji dronów poprzez formularz
-- 📍 Wybór lokalizacji na interaktywnej mapie
-- 🗂️ Przeglądanie historii swoich zgłoszeń
-- ✏️ Edycję i anulowanie zgłoszeń
-- 👨‍💼 Zarządzanie zgłoszeniami z poziomu panelu administratora
+---
 
-## 🛠 Tech Stack
+## 📋 O projekcie
+
+DronAlert to aplikacja webowa umożliwiająca obywatelom zgłaszanie incydentów związanych z niebezpiecznym lub nielegalnym użyciem dronów. Aplikacja oferuje system uwierzytelniania, interaktywne mapy, panel użytkownika oraz panel administratora do zarządzania zgłoszeniami.
+
+## 🚀 Funkcjonalności
+
+### Dla użytkowników
+- ✅ Rejestracja i logowanie (NextAuth.js)
+- ✅ Zgłaszanie incydentów z wyborem lokalizacji na mapie
+- ✅ Wyszukiwanie lokalizacji po adresie (forward geocoding)
+- ✅ Dashboard z własnymi zgłoszeniami
+- ✅ Edycja i anulowanie zgłoszeń
+- ✅ Zarządzanie profilem
+
+### Dla administratorów
+- ✅ Panel administratora z dostępem do wszystkich zgłoszeń
+- ✅ Statystyki systemu
+- ✅ Zarządzanie statusami zgłoszeń (Zaakceptowano/Odrzucono)
+- ✅ Kontrola dostępu oparta na rolach (RBAC)
+
+## 🛠️ Stack technologiczny
 
 - **Framework**: Next.js 16 (App Router)
 - **Język**: JavaScript
-- **Baza danych**: PostgreSQL (Prisma)
-- **Mapy**: React-Leaflet (OpenStreetMap)
-- **Stylowanie**: Vanilla CSS
+- **Styling**: Vanilla CSS (CSS Modules)
+- **Baza danych**: PostgreSQL
+- **ORM**: Prisma
+- **Uwierzytelnianie**: NextAuth.js
+- **Mapy**: React-Leaflet + OpenStreetMap (Nominatim)
 
-## 🚀 Szybki Start
+## 📦 Instalacja i uruchomienie
 
 ### Wymagania
-
 - Node.js 18+
-- PostgreSQL database (lub Prisma Accelerate)
+- PostgreSQL
+- npm lub yarn
 
-### Instalacja
+### Kroki
 
-1. Sklonuj repozytorium:
+1. **Klonowanie repozytorium**
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/kubanowalski/dron-alert.git
 cd dron-alert
 ```
 
-2. Zainstaluj zależności:
+2. **Instalacja zależności**
 ```bash
 npm install
 ```
 
-3. Skonfiguruj zmienne środowiskowe:
-```bash
-cp .env.example .env
-```
+3. **Konfiguracja zmiennych środowiskowych**
 
-Edytuj `.env` i dodaj swój connection string do PostgreSQL:
+Stwórz plik `.env` w głównym katalogu:
 ```env
-DATABASE_URL="postgresql://user:password@host:5432/database"
-# lub Prisma Accelerate:
-# DATABASE_URL="prisma+postgres://accelerate.prisma-data.net/?api_key=YOUR_API_KEY"
+DATABASE_URL="postgresql://user:password@localhost:5432/dronalert"
+NEXTAUTH_SECRET="your-secret-key-here"
+NEXTAUTH_URL="http://localhost:3000"
 ```
 
-4. Zastosuj schemat bazy danych:
+4. **Migracja bazy danych**
 ```bash
-npx prisma db push
+npx prisma migrate dev
+npx prisma db seed  # opcjonalnie: dane testowe
 ```
 
-5. Uruchom serwer deweloperski:
+5. **Uruchomienie aplikacji**
 ```bash
 npm run dev
 ```
 
-6. Otwórz [http://localhost:3000](http://localhost:3000) w przeglądarce.
+Aplikacja będzie dostępna pod adresem: **http://localhost:3000**
 
-## 📁 Struktura Projektu
+## 📊 Struktura projektu
 
 ```
 dron-alert/
 ├── prisma/
-│   └── schema.prisma          # Schemat bazy danych
+│   ├── schema.prisma      # Schema bazy danych
+│   └── migrations/        # Migracje
 ├── src/
-│   ├── app/
-│   │   ├── api/incidents/     # API routes (CRUD)
-│   │   ├── admin/             # Panel administratora
-│   │   ├── dashboard/         # Panel użytkownika
-│   │   ├── incidents/[id]/    # Szczegóły zgłoszenia
-│   │   ├── report/            # Formularz zgłaszania
-│   │   └── page.js            # Landing page
-│   └── components/
-│       ├── Map/               # Komponenty mapy
-│       ├── IncidentForm.js    # Formularz zgłoszenia
-│       └── IncidentList.js    # Lista zgłoszeń
-└── package.json
+│   ├── app/               # Next.js App Router
+│   │   ├── api/           # API routes
+│   │   ├── auth/          # Strony autentykacji
+│   │   ├── dashboard/     # Dashboard użytkownika
+│   │   ├── admin/         # Panel administratora
+│   │   └── incidents/     # Szczegóły zgłoszeń
+│   ├── components/        # Komponenty React
+│   └── middleware.js      # Route protection
+├── CHANGELOG.md           # Historia zmian
+├── TODO.md               # Planowane zadania
+└── DEPLOYMENT.md         # Instrukcje wdrożenia
 ```
 
-## 🎯 Funkcjonalności (MVP)
+## 🗄️ Model danych
 
-### ✅ Zaimplementowane
+### User
+- id (UUID)
+- email (unique)
+- password (hashed)
+- name, firstName, lastName
+- role (USER | ADMIN)
+- createdAt, updatedAt
 
-- **WF-01**: Formularz zgłaszania incydentów
-  - Typ incydentu (strefa zakazana, podejrzenie szpiegowania, itp.)
-  - Opis (max 200 znaków)
-  - Wybór lokalizacji na mapie
-  
-- **WF-02**: Lista zgłoszeń użytkownika
-  - Wyświetlanie własnych zgłoszeń
-  - Status zgłoszenia
-  - Podgląd szczegółów
+### Incident
+- id (UUID)
+- type (RESTRICTED_ZONE | PRIVACY_VIOLATION | DANGEROUS_FLIGHT | OTHER)
+- status (REPORTED | ACCEPTED | REJECTED | CANCELLED | ARCHIVED)
+- description
+- location (JSON: lat, lng, address)
+- userId (FK → User)
+- createdAt, updatedAt
 
-- **WF-03, WF-04, WF-05**: Szczegóły zgłoszenia
-  - Podgląd wszystkich informacji
-  - Edycja zgłoszenia
-  - Anulowanie zgłoszenia
+## 🔐 Bezpieczeństwo
 
-- **WF-06**: Panel administratora
-  - Lista wszystkich zgłoszeń
-  - Zmiana statusu (Zatwierdź/Odrzuć/Archiwizuj)
+- ✅ Hasła hashowane (bcrypt)
+- ✅ Sesje JWT (NextAuth.js)
+- ✅ Route protection (middleware)
+- ✅ Role-based access control (RBAC)
+- ✅ Authorization checks w API
+- ✅ HTTPS ready (dla produkcji)
 
-- **WF-07**: Integracja z mapami (Leaflet + OpenStreetMap)
+## 🌐 Wdrożenie
 
-### 📋 Planowane (poza MVP)
-
-- Rejestracja i logowanie użytkowników
-- Powiadomienia email/SMS
-- Upload zdjęć incydentów
-- Integracja z API rządowymi
-
-## 🌐 Wdrożenie na AWS
-
-### Opcja 1: AWS Amplify (Rekomendowane - najłatwiejsze)
-
-1. Zaloguj się do [AWS Console](https://console.aws.amazon.com/)
-2. Przejdź do **AWS Amplify**
-3. Kliknij **"New app"** → **"Host web app"**
-4. Połącz z GitHub repository
-5. Skonfiguruj build settings:
-   - Build command: \`npm run build\`
-   - Output directory: \`.next\`
-6. Dodaj zmienne środowiskowe:
-   - \`DATABASE_URL\`: Twój PostgreSQL connection string
-7. Kliknij **"Save and deploy"**
-
-### Opcja 2: AWS EC2
-
-Zobacz szczegółowe instrukcje w pliku [DEPLOYMENT.md](./DEPLOYMENT.md)
-
-## 🔒 Bezpieczeństwo
-
-- ⚠️ **NIGDY** nie commituj pliku \`.env\` z prawdziwymi danymi
-- ✅ Plik \`.env\` jest w \`.gitignore\`
-- ✅ Użyj \`.env.example\` jako template
-- ✅ Przechowuj wrażliwe dane w AWS Secrets Manager przy wdrożeniu
+Szczegółowe instrukcje wdrożenia na AWS (Amplify, App Runner, EC2) znajdują się w pliku [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## 📝 Licencja
 
-Projekt edukacyjny - AGH University of Science and Technology
+Ten projekt został stworzony jako projekt zaliczeniowy na zajęcia _Zaawansowane Technologie Webowe_ na AGH w 2025 roku.
 
-## 👤 Autor
+## 👥 Autorzy
 
-Julia Papée
-Jakub Nowalski
-Sandra Lipniak
+- Sandra Lipniak
+- Jakub Nowalski
+- Julia Papée
 
 ---
 
-**Status**: ✅ MVP Complete | 🚀 Production Ready
+**Wersja**: v0.3.0 | **Data wydania**: 19.11.2025
