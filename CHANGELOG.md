@@ -1,5 +1,48 @@
 # Changelog - DronAlert
 
+## [v0.4.0] - 2025-11-19
+
+### ✨ New Features
+
+#### Geolocation Support
+- **Current location button**: Added 📍 button to MapPicker for instant location detection
+- **Browser geolocation API**: Uses `navigator.geolocation.getCurrentPosition()`
+- **Automatic address lookup**: Reverse geocodes user's coordinates to display address
+- **Error handling**: User-friendly messages for permission denial, unavailable location, or timeout
+
+#### Address Autocomplete
+- **Live suggestions**: Dropdown list appears as user types in search field
+- **Debounced search**: 500ms delay to optimize API calls
+- **5 suggestions**: Shows top 5 matching addresses from Nominatim
+- **Click to select**: Clicking a suggestion updates map position and address
+- **Poland-focused**: Results filtered to Polish addresses
+
+### 🎨 UI/UX Improvements
+
+#### Layout Consistency
+- **Address position**: Moved address display above map in edit mode (consistent with view mode)
+- **Border cleanup**: Removed border frames around map components in both view and edit modes
+- **Unified styling**: MapPicker now matches the design of MapView and IncidentForm
+
+#### Search Enhancement
+- **Button tooltips**: Added title attributes to search and geolocation buttons
+- **Visual feedback**: Loading state shared between search and geolocation
+- **Dropdown styling**: Professional-looking suggestions with hover effects and shadows
+
+### 🐛 Bug Fixes
+
+#### Incident Editing
+- **Missing address fix**: MapPicker now accepts `initialLocation` prop to display existing address
+- **Infinite loop fix**: Used `useCallback` for location handler to prevent render loop
+- **Stable callbacks**: Prevented "Maximum update depth exceeded" error
+
+### 📦 Technical Improvements
+- **Debouncing**: Implemented proper debounce for autocomplete to reduce API load
+- **State management**: Better handling of suggestions state and visibility
+- **Position tracking**: Improved coordinate and address synchronization
+
+---
+
 ## [v0.3.0] - 2025-11-19
 
 ### ✨ New Features
