@@ -47,6 +47,10 @@
   --font-size-2xl: 1.5rem;
   --font-size-3xl: 2rem;
 
+  /* Layout */
+  --container-width: 900px;
+  --header-height: 64px;
+
   /* Border */
   --border-width: 1px;
   --border-radius: 4px;

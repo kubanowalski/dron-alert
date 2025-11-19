@@ -122,14 +122,7 @@ export default function IncidentForm() {
 
             <div className="form-group">
                 <label className="form-label">Lokalizacja</label>
-                <div style={{ border: "var(--border-width) solid var(--color-border)", borderRadius: "var(--border-radius)", overflow: "hidden" }}>
-                    <MapPicker onLocationSelect={handleLocationSelect} />
-                </div>
-                {formData.location && (
-                    <p className="text-xs text-muted mt-sm mb-0">
-                        Wybrano: {formData.location.address || `${formData.location.lat.toFixed(4)}, ${formData.location.lng.toFixed(4)}`}
-                    </p>
-                )}
+                <MapPicker onLocationSelect={handleLocationSelect} />
             </div>
 
             <button type="submit" className="btn btn-primary" disabled={loading} style={{ width: "100%" }}>

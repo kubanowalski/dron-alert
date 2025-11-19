@@ -1,5 +1,38 @@
 # Changelog - DronAlert
 
+## [v0.3.0] - 2025-11-19
+
+### ✨ New Features
+
+#### Location Search (Forward Geocoding)
+- **Search field in MapPicker**: Added text input with search functionality above the map
+- **Forward geocoding**: Search by address (city, street) using Nominatim API
+- **Two-way synchronization**:
+  - Searching by address → marker on map + zoom
+  - Clicking on map → reverse geocoding → address display
+- **Enter key support**: Press Enter in search field to search
+- **Poland-only results**: Search filtered to Polish addresses (`countrycodes=pl`)
+- **Loading states**: Visual feedback during search operations
+
+### 🎨 UI/UX Improvements
+
+#### Layout Optimization
+- **Narrower container**: Reduced max-width from `1200px` to `900px` for better readability
+- **Removed duplicate displays**: Eliminated redundant address boxes
+- **Removed overlapping borders**: Cleaned up nested border styles in MapPicker
+- **Improved placeholder**: "Wyszukaj adres lub kliknij na mapie" for better UX
+- **Compact location display**: Shows address with 📍 icon below map instead of in separate box
+
+### 🐛 Bug Fixes
+- **Nested forms fix**: Replaced `<form>` with `<div>` in MapPicker to avoid hydration errors
+- **Border cleanup**: Removed extra wrapper div with borders in IncidentForm
+
+### 📦 Documentation
+- **TODO updates**: Added tasks for location search improvements, account deletion feature
+- **Forward geocoding implementation**: Completed forward geocoding task
+
+---
+
 ## [v0.2.0] - 2025-11-19
 
 ### 🎨 UI/UX Improvements
