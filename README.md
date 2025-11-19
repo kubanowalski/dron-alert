@@ -150,7 +150,9 @@ Projekt edukacyjny - AGH University of Science and Technology
 
 ## 👤 Autor
 
+Julia Papée
 Jakub Nowalski
+Sandra Lipniak
 
 ---
 
