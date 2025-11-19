@@ -45,9 +45,8 @@ export default function IncidentList({ incidents, showUserInfo = false, isAdmin 
         try {
             const location = JSON.parse(locationStr);
             if (location.address) {
-                // Skróć adres do miasta i ulicy
-                const parts = location.address.split(',');
-                return parts.slice(0, 2).join(',').trim();
+                // Pokaż pełny adres
+                return location.address;
             }
             return `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`;
         } catch {
