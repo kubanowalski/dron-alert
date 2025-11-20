@@ -5,6 +5,12 @@ import { authOptions } from "@/lib/auth";
 
 // GET single incident
 export async function GET(request, { params }) {
+    const session = await getServerSession(authOptions);
+
+    if (!session) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     try {
         const { id } = await params;
         const incident = await prisma.incident.findUnique({
@@ -15,9 +21,17 @@ export async function GET(request, { params }) {
             return NextResponse.json({ error: "Incident not found" }, { status: 404 });
         }
 
+        // Check if user is owner or admin
+        if (incident.userId !== session.user.id && session.user.role !== "ADMIN") {
+            return NextResponse.json(
+                { error: "Forbidden: You can only view your own incidents" },
+                { status: 403 }
+            );
+        }
+
         return NextResponse.json(incident);
     } catch (error) {
-        console.error("Error fetching incident:", error);
+        console.error("Error fetching incident:", error.message);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
@@ -74,7 +88,7 @@ export async function PATCH(request, { params }) {
 
         return NextResponse.json(updatedIncident);
     } catch (error) {
-        console.error("Error updating incident:", error);
+        console.error("Error updating incident:", error.message);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }
@@ -114,7 +128,7 @@ export async function DELETE(request, { params }) {
 
         return NextResponse.json(updatedIncident);
     } catch (error) {
-        console.error("Error cancelling incident:", error);
+        console.error("Error cancelling incident:", error.message);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

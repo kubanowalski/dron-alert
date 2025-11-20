@@ -78,8 +78,7 @@ export default function IncidentDetailsPage() {
                 });
                 setLoading(false);
             })
-            .catch((err) => {
-                console.error(err);
+            .catch(() => {
                 setLoading(false);
             });
     }, [id]);
@@ -102,7 +101,6 @@ export default function IncidentDetailsPage() {
     };
 
     const handleCancel = async () => {
-        console.log("Starting cancel...");
         setMessage({ type: '', text: '' });
         setShowConfirm(false);
 
@@ -113,16 +111,12 @@ export default function IncidentDetailsPage() {
 
             if (res.ok) {
                 const updated = await res.json();
-                console.log("Cancel successful, updated:", updated);
                 setIncident(updated);
                 setMessage({ type: 'success', text: 'Zgłoszenie zostało anulowane' });
-                console.log("Message set to success");
             } else {
-                console.error("Cancel failed");
                 setMessage({ type: 'error', text: 'Błąd podczas anulowania zgłoszenia' });
             }
         } catch (error) {
-            console.error("Cancel error:", error);
             setMessage({ type: 'error', text: 'Błąd podczas anulowania zgłoszenia' });
         }
     };

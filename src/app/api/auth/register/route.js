@@ -75,13 +75,9 @@ export async function POST(request) {
             { status: 201 }
         );
     } catch (error) {
-        console.error("Registration error details:", {
-            message: error.message,
-            stack: error.stack,
-            name: error.name
-        });
+        console.error("Registration error:", error.message);
         return Response.json(
-            { error: "Wystąpił błąd podczas rejestracji: " + error.message },
+            { error: "Wystąpił błąd podczas rejestracji" },
             { status: 500 }
         );
     }
