@@ -64,8 +64,9 @@ export async function POST(request) {
         });
 
         if (existingUser) {
+            // Generic message to prevent user enumeration
             return Response.json(
-                { error: "Użytkownik z tym adresem email już istnieje" },
+                { error: "Nie można zarejestrować konta. Sprawdź poprawność danych." },
                 { status: 400 }
             );
         }

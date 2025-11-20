@@ -49,6 +49,48 @@ export async function PATCH(request, { params }) {
         const body = await request.json();
         const { description, type, status, location } = body;
 
+        // Validate input data
+        if (type) {
+            const validTypes = ['RESTRICTED_ZONE', 'PRIVACY_VIOLATION', 'DANGEROUS_FLIGHT', 'OTHER'];
+            if (!validTypes.includes(type)) {
+                return NextResponse.json(
+                    { error: "Invalid incident type" },
+                    { status: 400 }
+                );
+            }
+        }
+
+        if (status) {
+            const validStatuses = ['REPORTED', 'ACCEPTED', 'REJECTED', 'CANCELLED', 'ARCHIVED'];
+            if (!validStatuses.includes(status)) {
+                return NextResponse.json(
+                    { error: "Invalid status" },
+                    { status: 400 }
+                );
+            }
+        }
+
+        if (description && description.length > 500) {
+            return NextResponse.json(
+                { error: "Description too long (max 500 characters)" },
+                { status: 400 }
+            );
+        }
+
+        if (location) {
+            try {
+                const parsedLocation = typeof location === 'string' ? JSON.parse(location) : location;
+                if (!parsedLocation.lat || !parsedLocation.lng) {
+                    throw new Error("Invalid location format");
+                }
+            } catch (e) {
+                return NextResponse.json(
+                    { error: "Invalid location format" },
+                    { status: 400 }
+                );
+            }
+        }
+
         // Check if trying to update status - only admins can do this
         if (status && session.user.role !== "ADMIN") {
             return NextResponse.json(

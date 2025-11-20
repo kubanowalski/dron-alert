@@ -43,6 +43,37 @@ export async function POST(request) {
             );
         }
 
+        // Validate type enum
+        const validTypes = ['RESTRICTED_ZONE', 'PRIVACY_VIOLATION', 'DANGEROUS_FLIGHT', 'OTHER'];
+        if (!validTypes.includes(type)) {
+            return NextResponse.json(
+                { error: "Invalid incident type" },
+                { status: 400 }
+            );
+        }
+
+        // Validate description length (matches frontend maxLength)
+        if (description.length > 500) {
+            return NextResponse.json(
+                { error: "Description too long (max 500 characters)" },
+                { status: 400 }
+            );
+        }
+
+        // Validate location format
+        let parsedLocation;
+        try {
+            parsedLocation = typeof location === 'string' ? JSON.parse(location) : location;
+            if (!parsedLocation.lat || !parsedLocation.lng) {
+                throw new Error("Invalid location format");
+            }
+        } catch (e) {
+            return NextResponse.json(
+                { error: "Invalid location format" },
+                { status: 400 }
+            );
+        }
+
         const incident = await prisma.incident.create({
             data: {
                 type,
