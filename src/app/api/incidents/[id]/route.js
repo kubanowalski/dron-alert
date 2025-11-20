@@ -2,6 +2,7 @@ import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { getValidIncidentTypes, getValidIncidentStatuses, VALIDATION_LIMITS } from "@/lib/constants";
 
 // GET single incident
 export async function GET(request, { params }) {
@@ -50,29 +51,23 @@ export async function PATCH(request, { params }) {
         const { description, type, status, location } = body;
 
         // Validate input data
-        if (type) {
-            const validTypes = ['RESTRICTED_ZONE', 'PRIVACY_VIOLATION', 'DANGEROUS_FLIGHT', 'OTHER'];
-            if (!validTypes.includes(type)) {
-                return NextResponse.json(
-                    { error: "Invalid incident type" },
-                    { status: 400 }
-                );
-            }
-        }
-
-        if (status) {
-            const validStatuses = ['REPORTED', 'ACCEPTED', 'REJECTED', 'CANCELLED', 'ARCHIVED'];
-            if (!validStatuses.includes(status)) {
-                return NextResponse.json(
-                    { error: "Invalid status" },
-                    { status: 400 }
-                );
-            }
-        }
-
-        if (description && description.length > 500) {
+        if (type && !getValidIncidentTypes().includes(type)) {
             return NextResponse.json(
-                { error: "Description too long (max 500 characters)" },
+                { error: "Invalid incident type" },
+                { status: 400 }
+            );
+        }
+
+        if (status && !getValidIncidentStatuses().includes(status)) {
+            return NextResponse.json(
+                { error: "Invalid status" },
+                { status: 400 }
+            );
+        }
+
+        if (description && description.length > VALIDATION_LIMITS.DESCRIPTION_MAX_LENGTH) {
+            return NextResponse.json(
+                { error: `Description too long (max ${VALIDATION_LIMITS.DESCRIPTION_MAX_LENGTH} characters)` },
                 { status: 400 }
             );
         }

@@ -30,7 +30,7 @@ export async function POST(request) {
         // Walidacja email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            return Response.json(
+            return NextResponse.json(
                 { error: "Nieprawidłowy format email" },
                 { status: 400 }
             );
@@ -38,21 +38,21 @@ export async function POST(request) {
 
         // Walidacja hasła
         if (password.length < 8) {
-            return Response.json(
+            return NextResponse.json(
                 { error: "Hasło musi mieć minimum 8 znaków" },
                 { status: 400 }
             );
         }
 
         if (!/[A-Z]/.test(password)) {
-            return Response.json(
+            return NextResponse.json(
                 { error: "Hasło musi zawierać przynajmniej jedną wielką literę" },
                 { status: 400 }
             );
         }
 
         if (!/[0-9]/.test(password)) {
-            return Response.json(
+            return NextResponse.json(
                 { error: "Hasło musi zawierać przynajmniej jedną cyfrę" },
                 { status: 400 }
             );
@@ -65,7 +65,7 @@ export async function POST(request) {
 
         if (existingUser) {
             // Generic message to prevent user enumeration
-            return Response.json(
+            return NextResponse.json(
                 { error: "Nie można zarejestrować konta. Sprawdź poprawność danych." },
                 { status: 400 }
             );
@@ -85,7 +85,7 @@ export async function POST(request) {
             },
         });
 
-        return Response.json(
+        return NextResponse.json(
             {
                 message: "Konto utworzone pomyślnie",
                 user: {
@@ -98,7 +98,7 @@ export async function POST(request) {
         );
     } catch (error) {
         console.error("Registration error:", error.message);
-        return Response.json(
+        return NextResponse.json(
             { error: "Wystąpił błąd podczas rejestracji" },
             { status: 500 }
         );

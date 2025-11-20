@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { rateLimitUser } from "@/lib/rateLimit";
+import { getValidIncidentTypes, VALIDATION_LIMITS } from "@/lib/constants";
 
 export async function POST(request) {
     const session = await getServerSession(authOptions);
@@ -44,18 +45,17 @@ export async function POST(request) {
         }
 
         // Validate type enum
-        const validTypes = ['RESTRICTED_ZONE', 'PRIVACY_VIOLATION', 'DANGEROUS_FLIGHT', 'OTHER'];
-        if (!validTypes.includes(type)) {
+        if (!getValidIncidentTypes().includes(type)) {
             return NextResponse.json(
                 { error: "Invalid incident type" },
                 { status: 400 }
             );
         }
 
-        // Validate description length (matches frontend maxLength)
-        if (description.length > 500) {
+        // Validate description length
+        if (description.length > VALIDATION_LIMITS.DESCRIPTION_MAX_LENGTH) {
             return NextResponse.json(
-                { error: "Description too long (max 500 characters)" },
+                { error: `Description too long (max ${VALIDATION_LIMITS.DESCRIPTION_MAX_LENGTH} characters)` },
                 { status: 400 }
             );
         }

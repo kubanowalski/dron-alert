@@ -1,4 +1,10 @@
 import Link from "next/link";
+import {
+    getIncidentTypeLabel,
+    getIncidentStatusLabel,
+    getIncidentStatusBadgeClass,
+    getLocationText
+} from "@/lib/constants";
 
 export default function IncidentList({ incidents, showUserInfo = false, isAdmin = false }) {
     if (!Array.isArray(incidents) || incidents.length === 0) {
@@ -9,51 +15,6 @@ export default function IncidentList({ incidents, showUserInfo = false, isAdmin 
         );
     }
 
-    const getTypeLabel = (type) => {
-        const typeMap = {
-            'RESTRICTED_ZONE': 'Strefa zakazana',
-            'PRIVACY_VIOLATION': 'Naruszenie prywatności',
-            'DANGEROUS_FLIGHT': 'Niebezpieczny lot',
-            'OTHER': 'Inne',
-        };
-        return typeMap[type] || type;
-    };
-
-    const getStatusLabel = (status) => {
-        const statusMap = {
-            'REPORTED': 'Zgłoszono',
-            'ACCEPTED': 'Zaakceptowano',
-            'REJECTED': 'Odrzucono',
-            'CANCELLED': 'Anulowano',
-            'ARCHIVED': 'Zarchiwizowano',
-        };
-        return statusMap[status] || status;
-    };
-
-    const getStatusBadgeClass = (status) => {
-        const statusMap = {
-            'REPORTED': 'badge-reported',
-            'ACCEPTED': 'badge-accepted',
-            'REJECTED': 'badge-rejected',
-            'CANCELLED': 'badge-cancelled',
-            'ARCHIVED': 'badge-archived',
-        };
-        return `badge ${statusMap[status] || 'badge-reported'}`;
-    };
-
-    const getLocationText = (locationStr) => {
-        try {
-            const location = JSON.parse(locationStr);
-            if (location.address) {
-                // Pokaż pełny adres
-                return location.address;
-            }
-            return `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`;
-        } catch {
-            return "Nieznana lokalizacja";
-        }
-    };
-
     return (
         <div className="grid">
             {incidents.map((incident) => (
@@ -62,7 +23,7 @@ export default function IncidentList({ incidents, showUserInfo = false, isAdmin 
                         <div className="flex-between mb-sm">
                             <div>
                                 <h3 className="mb-xs">
-                                    {getTypeLabel(incident.type)}
+                                    {getIncidentTypeLabel(incident.type)}
                                 </h3>
                                 <p className="text-xs text-muted mb-0">
                                     {new Date(incident.createdAt).toLocaleDateString("pl-PL", {
@@ -79,8 +40,8 @@ export default function IncidentList({ incidents, showUserInfo = false, isAdmin 
                                     </p>
                                 )}
                             </div>
-                            <span className={getStatusBadgeClass(incident.status)}>
-                                {getStatusLabel(incident.status)}
+                            <span className={getIncidentStatusBadgeClass(incident.status)}>
+                                {getIncidentStatusLabel(incident.status)}
                             </span>
                         </div>
                         <p className="text-muted mb-sm" style={{
