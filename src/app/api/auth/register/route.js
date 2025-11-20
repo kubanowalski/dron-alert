@@ -1,8 +1,29 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { rateLimitRegister } from "@/lib/rateLimit";
 
 export async function POST(request) {
+    // Rate limiting: 3 registrations per hour per IP
+    const rateLimitResult = rateLimitRegister(request);
+    if (!rateLimitResult.success) {
+        return NextResponse.json(
+            {
+                error: "Zbyt wiele prób rejestracji. Spróbuj ponownie później.",
+                retryAfter: rateLimitResult.resetTime
+            },
+            {
+                status: 429,
+                headers: {
+                    'X-RateLimit-Limit': '3',
+                    'X-RateLimit-Remaining': '0',
+                    'X-RateLimit-Reset': String(rateLimitResult.resetTime),
+                    'Retry-After': String(rateLimitResult.resetTime),
+                }
+            }
+        );
+    }
+
     try {
         const { email, password, name, firstName, lastName } = await request.json();
 
