@@ -72,21 +72,7 @@ export default function AdminPage() {
         fetchIncidents();
     }, [session, status, router, fetchIncidents]);
 
-    // Funkcja do wyciągnięcia miejscowości z lokalizacji
-    const getLocationCity = (locationStr) => {
-        try {
-            const location = JSON.parse(locationStr);
-            if (location.address) {
-                // Wyciągamy miasto z adresu (szukamy po przecinku lub całość)
-                const parts = location.address.split(',').map(p => p.trim());
-                // Zwracamy ostatnią część (zazwyczaj miasto) lub całość jeśli nie ma przecinków
-                return parts[parts.length - 1] || location.address;
-            }
-            return null;
-        } catch {
-            return null;
-        }
-    };
+
 
     // Filtrowanie i sortowanie zgłoszeń
     const filteredAndSortedIncidents = useMemo(() => {
@@ -101,9 +87,14 @@ export default function AdminPage() {
 
         // Filtr miejscowości
         if (searchLocation.trim()) {
+            const searchLower = searchLocation.toLowerCase();
             filtered = filtered.filter(incident => {
-                const city = getLocationCity(incident.location);
-                return city && city.toLowerCase().includes(searchLocation.toLowerCase());
+                try {
+                    const location = JSON.parse(incident.location);
+                    return location.address && location.address.toLowerCase().includes(searchLower);
+                } catch {
+                    return false;
+                }
             });
         }
 
