@@ -4,6 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
+import {
+    getIncidentTypeLabel,
+    getIncidentStatusLabel,
+    getIncidentStatusBadgeClass,
+    getLocationText
+} from "@/lib/constants";
 
 const MapView = dynamic(() => import("@/components/Map/MapView"), { ssr: false });
 const MapPicker = dynamic(() => import("@/components/Map/MapPicker"), { ssr: false });
@@ -25,47 +31,6 @@ export default function IncidentDetailsPage() {
         setFormData(prev => ({ ...prev, location: loc }));
     }, []);
 
-    const getTypeLabel = (type) => {
-        const typeMap = {
-            'RESTRICTED_ZONE': 'Strefa zakazana',
-            'PRIVACY_VIOLATION': 'Naruszenie prywatności',
-            'DANGEROUS_FLIGHT': 'Niebezpieczny lot',
-            'OTHER': 'Inne',
-        };
-        return typeMap[type] || type;
-    };
-
-    const getStatusLabel = (status) => {
-        const statusMap = {
-            'REPORTED': 'Zgłoszono',
-            'ACCEPTED': 'Zaakceptowano',
-            'REJECTED': 'Odrzucono',
-            'CANCELLED': 'Anulowano',
-            'ARCHIVED': 'Zarchiwizowano',
-        };
-        return statusMap[status] || status;
-    };
-
-    const getStatusBadgeClass = (status) => {
-        const statusMap = {
-            'REPORTED': 'badge-reported',
-            'ACCEPTED': 'badge-accepted',
-            'REJECTED': 'badge-rejected',
-            'CANCELLED': 'badge-cancelled',
-            'ARCHIVED': 'badge-archived',
-        };
-        return `badge ${statusMap[status] || 'badge-reported'}`;
-    };
-
-    const getLocationText = (locationStr) => {
-        try {
-            const location = JSON.parse(locationStr);
-            return location.address || `${location.lat.toFixed(4)}, ${location.lng.toFixed(4)}`;
-        } catch {
-            return "Nieznana lokalizacja";
-        }
-    };
-
     useEffect(() => {
         fetch(`/api/incidents/${id}`)
             .then((res) => res.json())
@@ -78,8 +43,7 @@ export default function IncidentDetailsPage() {
                 });
                 setLoading(false);
             })
-            .catch((err) => {
-                console.error(err);
+            .catch(() => {
                 setLoading(false);
             });
     }, [id]);
@@ -102,7 +66,6 @@ export default function IncidentDetailsPage() {
     };
 
     const handleCancel = async () => {
-        console.log("Starting cancel...");
         setMessage({ type: '', text: '' });
         setShowConfirm(false);
 
@@ -113,16 +76,12 @@ export default function IncidentDetailsPage() {
 
             if (res.ok) {
                 const updated = await res.json();
-                console.log("Cancel successful, updated:", updated);
                 setIncident(updated);
                 setMessage({ type: 'success', text: 'Zgłoszenie zostało anulowane' });
-                console.log("Message set to success");
             } else {
-                console.error("Cancel failed");
                 setMessage({ type: 'error', text: 'Błąd podczas anulowania zgłoszenia' });
             }
         } catch (error) {
-            console.error("Cancel error:", error);
             setMessage({ type: 'error', text: 'Błąd podczas anulowania zgłoszenia' });
         }
     };
@@ -204,7 +163,7 @@ export default function IncidentDetailsPage() {
             <div className="card">
                 <div className="flex-between mb-lg">
                     <div>
-                        <h2 className="mb-xs">{getTypeLabel(incident.type)}</h2>
+                        <h2 className="mb-xs">{getIncidentTypeLabel(incident.type)}</h2>
                         <p className="text-xs text-muted mb-0">
                             {new Date(incident.createdAt).toLocaleDateString("pl-PL", {
                                 year: 'numeric',
@@ -215,8 +174,8 @@ export default function IncidentDetailsPage() {
                             })}
                         </p>
                     </div>
-                    <span className={getStatusBadgeClass(incident.status)}>
-                        {getStatusLabel(incident.status)}
+                    <span className={getIncidentStatusBadgeClass(incident.status)}>
+                        {getIncidentStatusLabel(incident.status)}
                     </span>
                 </div>
 

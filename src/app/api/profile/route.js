@@ -9,7 +9,7 @@ export async function GET(request) {
     const session = await getServerSession(authOptions);
 
     if (!session) {
-        return Response.json({ error: "Unauthorized" }, { status: 401 });
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const user = await prisma.user.findUnique({
@@ -25,14 +25,14 @@ export async function GET(request) {
         },
     });
 
-    return Response.json(user);
+    return NextResponse.json(user);
 }
 
 export async function PATCH(request) {
     const session = await getServerSession(authOptions);
 
     if (!session) {
-        return Response.json({ error: "Unauthorized" }, { status: 401 });
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     try {
@@ -42,7 +42,7 @@ export async function PATCH(request) {
         // Jeśli zmienia hasło, sprawdź obecne hasło
         if (newPassword) {
             if (!currentPassword) {
-                return Response.json(
+                return NextResponse.json(
                     { error: "Obecne hasło jest wymagane" },
                     { status: 400 }
                 );
@@ -54,7 +54,7 @@ export async function PATCH(request) {
 
             const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
             if (!isPasswordValid) {
-                return Response.json(
+                return NextResponse.json(
                     { error: "Nieprawidłowe obecne hasło" },
                     { status: 400 }
                 );
@@ -62,21 +62,21 @@ export async function PATCH(request) {
 
             // Walidacja nowego hasła
             if (newPassword.length < 8) {
-                return Response.json(
+                return NextResponse.json(
                     { error: "Nowe hasło musi mieć minimum 8 znaków" },
                     { status: 400 }
                 );
             }
 
             if (!/[A-Z]/.test(newPassword)) {
-                return Response.json(
+                return NextResponse.json(
                     { error: "Nowe hasło musi zawierać przynajmniej jedną wielką literę" },
                     { status: 400 }
                 );
             }
 
             if (!/[0-9]/.test(newPassword)) {
-                return Response.json(
+                return NextResponse.json(
                     { error: "Nowe hasło musi zawierać przynajmniej jedną cyfrę" },
                     { status: 400 }
                 );
@@ -102,7 +102,7 @@ export async function PATCH(request) {
                 },
             });
 
-            return Response.json(updatedUser);
+            return NextResponse.json(updatedUser);
         }
 
         // Aktualizacja bez zmiany hasła
@@ -123,10 +123,10 @@ export async function PATCH(request) {
             },
         });
 
-        return Response.json(updatedUser);
+        return NextResponse.json(updatedUser);
     } catch (error) {
         console.error("Profile update error:", error);
-        return Response.json(
+        return NextResponse.json(
             { error: "Wystąpił błąd podczas aktualizacji profilu" },
             { status: 500 }
         );

@@ -1,15 +1,36 @@
 import prisma from "@/lib/prisma";
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { rateLimitRegister } from "@/lib/rateLimit";
 
 export async function POST(request) {
+    // Rate limiting: 3 registrations per hour per IP
+    const rateLimitResult = rateLimitRegister(request);
+    if (!rateLimitResult.success) {
+        return NextResponse.json(
+            {
+                error: "Zbyt wiele prób rejestracji. Spróbuj ponownie później.",
+                retryAfter: rateLimitResult.resetTime
+            },
+            {
+                status: 429,
+                headers: {
+                    'X-RateLimit-Limit': '3',
+                    'X-RateLimit-Remaining': '0',
+                    'X-RateLimit-Reset': String(rateLimitResult.resetTime),
+                    'Retry-After': String(rateLimitResult.resetTime),
+                }
+            }
+        );
+    }
+
     try {
         const { email, password, name, firstName, lastName } = await request.json();
 
         // Walidacja email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            return Response.json(
+            return NextResponse.json(
                 { error: "Nieprawidłowy format email" },
                 { status: 400 }
             );
@@ -17,21 +38,21 @@ export async function POST(request) {
 
         // Walidacja hasła
         if (password.length < 8) {
-            return Response.json(
+            return NextResponse.json(
                 { error: "Hasło musi mieć minimum 8 znaków" },
                 { status: 400 }
             );
         }
 
         if (!/[A-Z]/.test(password)) {
-            return Response.json(
+            return NextResponse.json(
                 { error: "Hasło musi zawierać przynajmniej jedną wielką literę" },
                 { status: 400 }
             );
         }
 
         if (!/[0-9]/.test(password)) {
-            return Response.json(
+            return NextResponse.json(
                 { error: "Hasło musi zawierać przynajmniej jedną cyfrę" },
                 { status: 400 }
             );
@@ -43,8 +64,9 @@ export async function POST(request) {
         });
 
         if (existingUser) {
-            return Response.json(
-                { error: "Użytkownik z tym adresem email już istnieje" },
+            // Generic message to prevent user enumeration
+            return NextResponse.json(
+                { error: "Nie można zarejestrować konta. Sprawdź poprawność danych." },
                 { status: 400 }
             );
         }
@@ -63,7 +85,7 @@ export async function POST(request) {
             },
         });
 
-        return Response.json(
+        return NextResponse.json(
             {
                 message: "Konto utworzone pomyślnie",
                 user: {
@@ -75,13 +97,9 @@ export async function POST(request) {
             { status: 201 }
         );
     } catch (error) {
-        console.error("Registration error details:", {
-            message: error.message,
-            stack: error.stack,
-            name: error.name
-        });
-        return Response.json(
-            { error: "Wystąpił błąd podczas rejestracji: " + error.message },
+        console.error("Registration error:", error.message);
+        return NextResponse.json(
+            { error: "Wystąpił błąd podczas rejestracji" },
             { status: 500 }
         );
     }
