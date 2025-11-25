@@ -647,6 +647,61 @@ p {
   background-color: var(--color-hover);
 }
 
+/* Filter Chips */
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-sm) var(--space-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  font-family: var(--font-family);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.filter-chip:hover {
+  background-color: var(--color-hover);
+  border-color: var(--color-text-muted);
+}
+
+.filter-chip-active {
+  background-color: var(--color-primary);
+  color: var(--color-background);
+  border-color: var(--color-primary);
+}
+
+.filter-chip-active:hover {
+  opacity: 0.9;
+}
+
+/* Dark mode filter chips */
+[data-theme="dark"] .filter-chip {
+  background-color: #3f3f46;
+  border-color: #52525b;
+}
+
+[data-theme="dark"] .filter-chip:hover {
+  background-color: #52525b;
+  border-color: #71717a;
+}
+
+[data-theme="dark"] .filter-chip-active {
+  background-color: var(--color-primary);
+  color: var(--color-gray-900);
+  border-color: var(--color-primary);
+}
+
 /* Footer */
 .footer {
   margin-top: auto;
