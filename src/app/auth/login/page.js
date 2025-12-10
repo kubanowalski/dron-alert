@@ -1,11 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function LoginPage() {
+/**
+ * Formularz Logowania
+ * Umożliwia wejście do systemu przy użyciu emaila i hasła.
+ */
+function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [formData, setFormData] = useState({
@@ -16,10 +20,11 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false);
     const [showRegisteredMessage, setShowRegisteredMessage] = useState(false);
 
+    // Wyświetl komunikat sukcesu, jeśli użytkownik właśnie się zarejestrował i został tu przekierowany
     useEffect(() => {
         if (searchParams.get('registered') === 'true') {
             setShowRegisteredMessage(true);
-            // Hide message after 5 seconds
+            // Ukryj komunikat po 5 sekundach
             setTimeout(() => setShowRegisteredMessage(false), 5000);
         }
     }, [searchParams]);
@@ -30,6 +35,7 @@ export default function LoginPage() {
         setLoading(true);
 
         try {
+            // Próba zalogowania przez NextAuth
             const result = await signIn("credentials", {
                 email: formData.email,
                 password: formData.password,
@@ -39,6 +45,7 @@ export default function LoginPage() {
             if (result?.error) {
                 setError(result.error);
             } else {
+                // Sukces -> idź do dashboardu
                 router.push("/dashboard");
                 router.refresh();
             }
@@ -125,5 +132,17 @@ export default function LoginPage() {
                 </p>
             </div>
         </div>
+    );
+}
+
+/**
+ * Strona Logowania - Kontener
+ * Wrapper potrzebny, żeby Next.js poprawnie obsługiwał parametry URL (np. ?registered=true)
+ */
+export default function LoginPage() {
+    return (
+        <Suspense fallback={<div className="loading">Ładowanie...</div>}>
+            <LoginForm />
+        </Suspense>
     );
 }

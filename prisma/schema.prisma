@@ -2,32 +2,36 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Konfiguracja połączenia z bazą danych (np. PostgreSQL)
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+// Model Incident - opisuje jak wygląda pojedyncze zgłoszenie
+// Każde zgłoszenie ma swoje id, datę, typ, opis, lokalizację i status
 model Incident {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  type        String
-  description String
-  location    String
-  status      String   @default("REPORTED")
-  photoUrl    String?
-  userId      String
+  id          String   @id @default(cuid()) // Unikalny identyfikator
+  createdAt   DateTime @default(now())      // Data utworzenia (automatyczna)
+  type        String   // Typ incydentu (np. strefa zakazana)
+  description String   // Dokładny opis zdarzenia
+  location    String   // Lokalizacja (współrzędne GPS zapisane jako tekst)
+  status      String   @default("REPORTED") // Status: Zgłoszone, Przyjęte, Odrzucone itp.
+  photoUrl    String?  // Link do zdjęcia (opcjonalny, stąd pytajnik)
+  userId      String   // Powiązanie: id użytkownika, który zgłosił
   User        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+// Model User - opisuje użytkownika systemu
 model User {
   id        String     @id @default(cuid())
-  email     String     @unique
-  password  String
-  name      String?
-  firstName String?
-  lastName  String?
-  role      String     @default("USER")
-  createdAt DateTime   @default(now())
-  updatedAt DateTime
-  Incident  Incident[]
+  email     String     @unique // Email musi być unikalny w systemie
+  password  String     // Hasło (zapisane w bezpiecznej, zaszyfrowanej formie)
+  name      String?    // Imię i nazwisko / Nazwa (opcjonalne)
+  firstName String?    // Imię
+  lastName  String?    // Nazwisko
+  role      String     @default("USER") // Rola: Zwykły użytkownik (USER) lub Administrator (ADMIN)
+  createdAt DateTime   @default(now())  // Kiedy założono konto
+  updatedAt DateTime   @updatedAt       // Automatyczna data ostatniej aktualizacji
+  Incident  Incident[] // Lista zgłoszeń wysłanych przez tego użytkownika
 }

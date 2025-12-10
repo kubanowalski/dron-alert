@@ -5,6 +5,14 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import IncidentList from "@/components/IncidentList";
 
+/**
+ * Panel Administratora
+ * Centrum zarządzania dla osób z uprawnieniami ADMIN.
+ * Pozwala na:
+ * - Przeglądanie statystyk (ile zgłoszeń, ile zaakceptowanych itd.)
+ * - Filtrowanie zgłoszeń (np. pokaż tylko te "Odrzucone")
+ * - Szukanie po lokalizacji
+ */
 export default function AdminPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
@@ -18,11 +26,12 @@ export default function AdminPage() {
         cancelled: 0,
     });
 
-    // Filtry
+    // Filters and Sorting State
     const [selectedStatuses, setSelectedStatuses] = useState([]);
     const [searchLocation, setSearchLocation] = useState("");
-    const [sortOrder, setSortOrder] = useState("desc"); // desc = najnowsze pierwsze
+    const [sortOrder, setSortOrder] = useState("desc"); // desc = items newest first
 
+    // Fetch all incidents
     const fetchIncidents = useCallback(async () => {
         try {
             const res = await fetch("/api/incidents");
@@ -56,6 +65,7 @@ export default function AdminPage() {
         }
     }, []);
 
+    // Check authentication and role
     useEffect(() => {
         if (status === "loading") return;
 
@@ -74,18 +84,18 @@ export default function AdminPage() {
 
 
 
-    // Filtrowanie i sortowanie zgłoszeń
+    // Filter and Sort Incidents
     const filteredAndSortedIncidents = useMemo(() => {
         let filtered = [...incidents];
 
-        // Filtr statusów
+        // Filter by Status
         if (selectedStatuses.length > 0) {
             filtered = filtered.filter(incident =>
                 selectedStatuses.includes(incident.status)
             );
         }
 
-        // Filtr miejscowości
+        // Filter by Location
         if (searchLocation.trim()) {
             const searchLower = searchLocation.toLowerCase();
             filtered = filtered.filter(incident => {
@@ -98,7 +108,7 @@ export default function AdminPage() {
             });
         }
 
-        // Sortowanie po dacie
+        // Sort by Date
         filtered.sort((a, b) => {
             const dateA = new Date(a.createdAt);
             const dateB = new Date(b.createdAt);
@@ -117,14 +127,14 @@ export default function AdminPage() {
         );
     };
 
-    // Wyczyść wszystkie filtry
+    // Clear all filters
     const clearFilters = () => {
         setSelectedStatuses([]);
         setSearchLocation("");
         setSortOrder("desc");
     };
 
-    // Sprawdź czy są aktywne filtry
+    // Check if there are active filters
     const hasActiveFilters = selectedStatuses.length > 0 || searchLocation.trim() !== "";
 
     if (status === "loading" || loading) {

@@ -1,5 +1,9 @@
 import IncidentForm from "@/components/IncidentForm";
 
+/**
+ * Strona Zgłaszania Incydentu
+ * Wyświetla formularz, w którym użytkownik może opisać, co się stało.
+ */
 export default function ReportPage() {
     return (
         <div>

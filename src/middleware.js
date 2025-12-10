@@ -1,32 +1,43 @@
 import { NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
+// Middleware - to "strażnik" aplikacji.
+// Sprawdza każde wejście na stronę i decyduje, czy użytkownik może ją zobaczyć.
 export async function middleware(request) {
+    // Pobieramy "przepustkę" (token) użytkownika
     const token = await getToken({ req: request });
     const { pathname } = request.nextUrl;
 
-    // Protect /admin routes - require ADMIN role
+    // Ochrona panelu administratora (/admin)
+    // Tylko użytkownicy z rolą ADMIN mogą tu wejść
     if (pathname.startsWith('/admin')) {
+        // Jeśli nie jest zalogowany -> wyślij do logowania
         if (!token) {
             return NextResponse.redirect(new URL('/auth/login', request.url));
         }
 
+        // Jeśli jest zalogowany, ale nie jest adminem -> wyślij na stronę główną
         if (token.role !== 'ADMIN') {
             return NextResponse.redirect(new URL('/', request.url));
         }
     }
 
-    // Protect authenticated routes
+    // Ochrona stron dla zalogowanych (dashboard, profil, zgłaszanie)
+    // Lista stron, które wymagają logowania
     const protectedRoutes = ['/dashboard', '/profile', '/report'];
     if (protectedRoutes.some(route => pathname.startsWith(route))) {
+        // Jeśli użytkownik nie ma "przepustki" (tokena), odsyłamy do logowania
         if (!token) {
             return NextResponse.redirect(new URL('/auth/login', request.url));
         }
     }
 
+    // Jeśli wszystko ok, przepuść użytkownika dalej
     return NextResponse.next();
 }
 
+// Konfiguracja "strażnika"
+// Tutaj wpisujemy adresy stron, które mają być sprawdzane
 export const config = {
     matcher: ['/admin/:path*', '/dashboard/:path*', '/profile/:path*', '/report/:path*'],
 };

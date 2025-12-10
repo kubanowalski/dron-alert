@@ -5,7 +5,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
-// Fix for default marker icon in Next.js
+// Naprawiamy domyślne ikony pinezek Leaflet, które nie ładują się poprawnie w Next.js
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
@@ -13,6 +13,13 @@ L.Icon.Default.mergeOptions({
     shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
+/**
+ * Komponent LocationMarker (Pinezka)
+ * Obsługuje kliknięcie na mapę:
+ * 1. Stawia pinezkę w klikniętym miejscu.
+ * 2. Przesuwa mapę do pinezki.
+ * 3. Zamienia współrzędne na adres (tzw. Reverse Geocoding).
+ */
 function LocationMarker({ position, setPosition, setAddress }) {
     const map = useMapEvents({
         click(e) {
@@ -20,7 +27,7 @@ function LocationMarker({ position, setPosition, setAddress }) {
             setPosition(newPos);
             map.flyTo(newPos, map.getZoom());
 
-            // Reverse geocoding
+            // Pytamy OpenStreetMap jaki to adres
             fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${newPos.lat}&lon=${newPos.lng}`, {
                 headers: {
                     'User-Agent': 'DronAlert/1.0'
@@ -37,11 +44,12 @@ function LocationMarker({ position, setPosition, setAddress }) {
                 })
                 .catch((err) => {
                     console.warn("Reverse geocoding error:", err);
-                    // Silently fail - user can still use the coordinates
+                    // Nawet jak nie znajdziemy adresu, to współrzędne są ok
                 });
         },
     });
 
+    // Jeśli pozycja zmieni się "z zewnątrz" (np. przez wyszukiwarkę), przesuń mapę
     useEffect(() => {
         if (position) {
             map.flyTo(position, map.getZoom());
@@ -51,7 +59,15 @@ function LocationMarker({ position, setPosition, setAddress }) {
     return position === null ? null : <Marker position={position} />;
 }
 
+/**
+ * Komponent MapPicker (Wybieracz Lokalizacji)
+ * To główne narzędzie do mapy. Pozwala wybrać lokalizację na 3 sposoby:
+ * 1. Kliknięcie na mapie
+ * 2. Wpisanie adresu w wyszukiwarkę
+ * 3. Użycie przycisku "Moja lokalizacja" (GPS)
+ */
 export default function MapPicker({ onLocationSelect, initialLocation }) {
+    // Domyślnie Warszawa centrum jeśli brak innej lokalizacji
     const [position, setPosition] = useState(initialLocation ? { lat: initialLocation.lat, lng: initialLocation.lng } : { lat: 52.2297, lng: 21.0122 });
     const [address, setAddress] = useState(initialLocation?.address || "");
     const [searchQuery, setSearchQuery] = useState("");
@@ -59,6 +75,7 @@ export default function MapPicker({ onLocationSelect, initialLocation }) {
     const [suggestions, setSuggestions] = useState([]);
     const [showSuggestions, setShowSuggestions] = useState(false);
 
+    // Automatyczne podpowiadanie adresu po 500ms od przestania pisania (debounce)
     useEffect(() => {
         const delayDebounceFn = setTimeout(async () => {
             if (searchQuery.length < 3) {
@@ -68,6 +85,7 @@ export default function MapPicker({ onLocationSelect, initialLocation }) {
             }
 
             try {
+                // Search for addresses in Poland
                 const response = await fetch(
                     `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=pl&limit=5&addressdetails=1`
                 );
@@ -77,17 +95,19 @@ export default function MapPicker({ onLocationSelect, initialLocation }) {
             } catch (error) {
                 console.error("Autocomplete error:", error);
             }
-        }, 500);
+        }, 500); // 500ms delay
 
         return () => clearTimeout(delayDebounceFn);
     }, [searchQuery]);
 
+    // Notify parent component when location changes
     const handleLocationSelect = useCallback((location) => {
         if (onLocationSelect) {
             onLocationSelect(location);
         }
     }, [onLocationSelect]);
 
+    // Sync state with parent callback
     useEffect(() => {
         if (position && address) {
             handleLocationSelect({
@@ -98,6 +118,7 @@ export default function MapPicker({ onLocationSelect, initialLocation }) {
         }
     }, [position, address, handleLocationSelect]);
 
+    // Handle direct search submission
     const handleSearch = async (query) => {
         if (!query || query.length < 3) return;
 
@@ -124,6 +145,7 @@ export default function MapPicker({ onLocationSelect, initialLocation }) {
         }
     };
 
+    // Use browser geolocation API
     const handleGeolocation = () => {
         if (!navigator.geolocation) {
             alert("Twoja przeglądarka nie obsługuje geolokalizacji.");
@@ -163,6 +185,7 @@ export default function MapPicker({ onLocationSelect, initialLocation }) {
         );
     };
 
+    // Handle clicking on an autocomplete suggestion
     const handleSuggestionClick = (suggestion) => {
         const newPos = {
             lat: parseFloat(suggestion.lat),
@@ -181,7 +204,7 @@ export default function MapPicker({ onLocationSelect, initialLocation }) {
 
     return (
         <div>
-            {/* Search Input */}
+            {/* Search Input and Geolocation Button */}
             <div style={{ marginBottom: "var(--space-md)", position: "relative" }}>
                 <div style={{ display: "flex", gap: "var(--space-sm)" }}>
                     <input
@@ -217,6 +240,7 @@ export default function MapPicker({ onLocationSelect, initialLocation }) {
                         📍
                     </button>
                 </div>
+                {/* Autocomplete Suggestions Dropdown */}
                 {showSuggestions && suggestions.length > 0 && (
                     <ul style={{
                         listStyle: "none",
@@ -257,7 +281,7 @@ export default function MapPicker({ onLocationSelect, initialLocation }) {
                 {address ? `📍 ${address}` : "Kliknij na mapie lub wyszukaj adres"}
             </p>
 
-            {/* Map */}
+            {/* Map Container */}
             <MapContainer
                 center={[position.lat, position.lng]}
                 zoom={13}

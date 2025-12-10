@@ -5,6 +5,10 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect, useState } from "react";
 
+/**
+ * Komponent MapView (Podgląd Mapy)
+ * Wyświetla mapę tylko do odczytu (bez możliwości edycji) z zaznaczoną pinezką.
+ */
 export default function MapView({ location }) {
     const [isMounted, setIsMounted] = useState(false);
 
@@ -19,6 +23,7 @@ export default function MapView({ location }) {
         });
     }, []);
 
+    // Prevent server-side rendering issues
     if (!isMounted || !location) return <p>Loading map...</p>;
 
     const position = [location.lat, location.lng];

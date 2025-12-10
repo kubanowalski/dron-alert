@@ -3,8 +3,13 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { rateLimitRegister } from "@/lib/rateLimit";
 
+/**
+ * API Rejestracji (POST)
+ * Tutaj trafiają dane, gdy ktoś klika "Zarejestruj się".
+ * Tworzymy nowe konto użytkownika w bazie danych.
+ */
 export async function POST(request) {
-    // Rate limiting: 3 registrations per hour per IP
+    // Rate limiting using in-memory store: 3 registrations per hour per IP
     const rateLimitResult = rateLimitRegister(request);
     if (!rateLimitResult.success) {
         return NextResponse.json(
@@ -27,7 +32,7 @@ export async function POST(request) {
     try {
         const { email, password, name, firstName, lastName } = await request.json();
 
-        // Walidacja email
+        // Email validation regex check
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
             return NextResponse.json(
@@ -36,7 +41,7 @@ export async function POST(request) {
             );
         }
 
-        // Walidacja hasła
+        // Password complexity validation
         if (password.length < 8) {
             return NextResponse.json(
                 { error: "Hasło musi mieć minimum 8 znaków" },
@@ -58,23 +63,23 @@ export async function POST(request) {
             );
         }
 
-        // Sprawdź czy użytkownik już istnieje
+        // Check for existing user to prevent duplicates
         const existingUser = await prisma.user.findUnique({
             where: { email },
         });
 
         if (existingUser) {
-            // Generic message to prevent user enumeration
+            // Generic message to prevent user enumeration security risk
             return NextResponse.json(
                 { error: "Nie można zarejestrować konta. Sprawdź poprawność danych." },
                 { status: 400 }
             );
         }
 
-        // Hash hasła
+        // Hash password securely
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Utwórz użytkownika
+        // Create user in database
         const user = await prisma.user.create({
             data: {
                 email,
@@ -85,6 +90,7 @@ export async function POST(request) {
             },
         });
 
+        // Return success response (excluding password)
         return NextResponse.json(
             {
                 message: "Konto utworzone pomyślnie",

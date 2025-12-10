@@ -4,7 +4,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 
-
+/**
+ * API: Pobieranie profilu (GET)
+ * Zwraca dane aktualnie zalogowanego użytkownika.
+ */
 export async function GET(request) {
     const session = await getServerSession(authOptions);
 
@@ -12,6 +15,7 @@ export async function GET(request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Zwracamy dane (ale bez hasła!)
     const user = await prisma.user.findUnique({
         where: { id: session.user.id },
         select: {
@@ -28,6 +32,10 @@ export async function GET(request) {
     return NextResponse.json(user);
 }
 
+/**
+ * API: Aktualizacja profilu (PATCH)
+ * Pozwala zmienić dane osobowe ORAZ hasło.
+ */
 export async function PATCH(request) {
     const session = await getServerSession(authOptions);
 
@@ -39,8 +47,9 @@ export async function PATCH(request) {
         const data = await request.json();
         const { email, name, firstName, lastName, currentPassword, newPassword } = data;
 
-        // Jeśli zmienia hasło, sprawdź obecne hasło
+        // Scenariusz: Zmiana hasła
         if (newPassword) {
+            // Musimy sprawdzić stare hasło dla bezpieczeństwa
             if (!currentPassword) {
                 return NextResponse.json(
                     { error: "Obecne hasło jest wymagane" },
@@ -52,6 +61,7 @@ export async function PATCH(request) {
                 where: { id: session.user.id },
             });
 
+            // Czy stare hasło się zgadza?
             const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
             if (!isPasswordValid) {
                 return NextResponse.json(
@@ -60,7 +70,7 @@ export async function PATCH(request) {
                 );
             }
 
-            // Walidacja nowego hasła
+            // Walidacja nowego hasła (długość, znaki)
             if (newPassword.length < 8) {
                 return NextResponse.json(
                     { error: "Nowe hasło musi mieć minimum 8 znaków" },
@@ -82,8 +92,10 @@ export async function PATCH(request) {
                 );
             }
 
+            // Szyfrowanie nowego hasła
             const hashedPassword = await bcrypt.hash(newPassword, 10);
 
+            // Aktualizacja w bazie (z hasłem)
             const updatedUser = await prisma.user.update({
                 where: { id: session.user.id },
                 data: {
@@ -105,7 +117,7 @@ export async function PATCH(request) {
             return NextResponse.json(updatedUser);
         }
 
-        // Aktualizacja bez zmiany hasła
+        // Scenariusz: Zwykła aktualizacja (bez zmiany hasła)
         const updatedUser = await prisma.user.update({
             where: { id: session.user.id },
             data: {

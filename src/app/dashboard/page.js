@@ -5,6 +5,12 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import IncidentList from "@/components/IncidentList";
 
+/**
+ * Dashboard (Tablica Zgłoszeń)
+ * To jest główne centrum dowodzenia.
+ * - Jeśli jesteś Adminem: widzisz WSZYSTKIE zgłoszenia od wszystkich ludzi.
+ * - Jeśli jesteś Użytkownikiem: widzisz tylko SWOJE zgłoszenia.
+ */
 export default function DashboardPage() {
     const { data: session, status } = useSession();
     const router = useRouter();
@@ -13,14 +19,17 @@ export default function DashboardPage() {
 
     const isAdmin = session?.user?.role === "ADMIN";
 
+    // Fetch incidents on mount
     useEffect(() => {
         if (status === "loading") return;
 
+        // Redirect if not authenticated
         if (!session) {
             router.push("/auth/login");
             return;
         }
 
+        // Fetch incidents from API
         fetch("/api/incidents")
             .then(async (res) => {
                 if (!res.ok) {

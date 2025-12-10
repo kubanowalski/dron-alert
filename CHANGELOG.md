@@ -1,5 +1,20 @@
 # Changelog - DronAlert
 
+## [v0.5.1] - 2025-12-10
+
+### 📚 Dokumentacja
+- **Komentarze**: Dodano szczegółowe komentarze w języku polskim do wszystkich kluczowych plików projektu, wyjaśniające działanie poszczególnych modułów i funkcji.
+- **Pokrycie kodu**: Skomentowano pliki konfiguracyjne, middleware, komponenty, strony oraz API routes.
+
+---
+
+## [v0.5.0] - 2025-11-25
+- Dodanie: filtrowania po statusie zgłoszenia, sortowania (rosnąco i malejąco) po dacie utworzenia oraz wyszukiwarki w panelu administratora.
+- Wdrożenie zmian w zakresie bezpieczeństwa i spójności kodu.
+- Naprawa błędu na stronie logowania.
+
+---
+
 ## [v0.4.0] - 2025-11-19
 
 ### ✨ New Features

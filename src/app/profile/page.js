@@ -5,6 +5,13 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 
+/**
+ * Strona Profilu
+ * Tutaj użytkownik może zarządzać swoim kontem:
+ * - Zmienić imię i nazwisko
+ * - Zmienić hasło (musi znać stare)
+ * - Wylogować się (alternatywny guzik)
+ */
 export default function ProfilePage() {
     const { data: session, status } = useSession();
     const router = useRouter();
@@ -22,6 +29,7 @@ export default function ProfilePage() {
         confirmNewPassword: "",
     });
 
+    // Fetch user profile data
     useEffect(() => {
         if (status === "loading") return;
         if (!session) {
@@ -29,7 +37,7 @@ export default function ProfilePage() {
             return;
         }
 
-        // Pobierz dane użytkownika
+        // Fetch user data from API
         fetch("/api/profile")
             .then((res) => res.json())
             .then((data) => {
@@ -55,7 +63,7 @@ export default function ProfilePage() {
         setError("");
         setSuccess("");
 
-        // Walidacja zmiany hasła
+        // Validate password change
         if (formData.newPassword) {
             if (formData.newPassword !== formData.confirmNewPassword) {
                 setError("Nowe hasła nie są identyczne");
@@ -70,6 +78,7 @@ export default function ProfilePage() {
         setSaving(true);
 
         try {
+            // Update profile
             const res = await fetch("/api/profile", {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
@@ -91,7 +100,7 @@ export default function ProfilePage() {
             }
 
             setSuccess("Profil zaktualizowany pomyślnie");
-            // Wyczyść pola hasła
+            // Clear password fields on success
             setFormData({
                 ...formData,
                 currentPassword: "",

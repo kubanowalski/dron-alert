@@ -5,6 +5,11 @@ import { authOptions } from "@/lib/auth";
 import { rateLimitUser } from "@/lib/rateLimit";
 import { getValidIncidentTypes, VALIDATION_LIMITS } from "@/lib/constants";
 
+/**
+ * API: Tworzenie nowego incydentu (POST)
+ * Dostęp: Tylko zalogowani użytkownicy.
+ * Dodatkowo: Zabezpieczenie przedspamowaniem (Rate Limiting).
+ */
 export async function POST(request) {
     const session = await getServerSession(authOptions);
 
@@ -12,7 +17,7 @@ export async function POST(request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Rate limiting: 60 incidents per hour per user
+    // Limitujemy: 60 zgłoszeń na godzinę na użytkownika
     const rateLimitResult = rateLimitUser(session.user.id);
     if (!rateLimitResult.success) {
         return NextResponse.json(
@@ -36,7 +41,7 @@ export async function POST(request) {
         const body = await request.json();
         const { type, description, location, photoUrl } = body;
 
-        // Basic validation
+        // Podstawowa walidacja - czy wszystkie pola są wypełnione
         if (!type || !description || !location) {
             return NextResponse.json(
                 { error: "Missing required fields" },
@@ -44,7 +49,7 @@ export async function POST(request) {
             );
         }
 
-        // Validate type enum
+        // Sprawdzamy czy typ incydentu jest na naszej liście dozwolonych
         if (!getValidIncidentTypes().includes(type)) {
             return NextResponse.json(
                 { error: "Invalid incident type" },
@@ -52,7 +57,7 @@ export async function POST(request) {
             );
         }
 
-        // Validate description length
+        // Sprawdzamy długość opisu
         if (description.length > VALIDATION_LIMITS.DESCRIPTION_MAX_LENGTH) {
             return NextResponse.json(
                 { error: `Description too long (max ${VALIDATION_LIMITS.DESCRIPTION_MAX_LENGTH} characters)` },
@@ -60,7 +65,7 @@ export async function POST(request) {
             );
         }
 
-        // Validate location format
+        // Sprawdzamy poprawność lokalizacji (czy ma lat i lng)
         let parsedLocation;
         try {
             parsedLocation = typeof location === 'string' ? JSON.parse(location) : location;
@@ -74,6 +79,7 @@ export async function POST(request) {
             );
         }
 
+        // Zapisujemy incydent w bazie danych, przypisany do aktualnego użytkownika
         const incident = await prisma.incident.create({
             data: {
                 type,
@@ -94,7 +100,12 @@ export async function POST(request) {
     }
 }
 
-// GET all incidents (filtered by user or all for admins)
+/**
+ * API: Pobieranie listy incydentów (GET)
+ * - Zwykły Użytkownik: dostaje tylko SWOJE zgłoszenia.
+ * - Admin: dostaje WSZYSTKIE zgłoszenia.
+ * Wyniki są sortowane od najnowszych.
+ */
 export async function GET(request) {
     try {
         const session = await getServerSession(authOptions);
@@ -103,7 +114,7 @@ export async function GET(request) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Rate limiting: 60 requests per hour per user
+        // Limitujemy zapytania: 60 na godzinę
         const rateLimitResult = rateLimitUser(session.user.id);
         if (!rateLimitResult.success) {
             return NextResponse.json(
@@ -124,6 +135,7 @@ export async function GET(request) {
 
         const isAdmin = session.user.role === "ADMIN";
 
+        // Pobieramy z bazy (z filtrem lub bez, zależnie od roli)
         const incidents = await prisma.incident.findMany({
             where: isAdmin ? {} : { userId: session.user.id },
             orderBy: { createdAt: "desc" },

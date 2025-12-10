@@ -1,5 +1,10 @@
 import Link from "next/link";
 
+/**
+ * Strona Główna (Landing Page)
+ * To widzi użytkownik zaraz po wejściu na stronę.
+ * Zawiera powitanie i przyciski do najważniejszych akcji.
+ */
 export default function Home() {
   return (
     <div style={{ maxWidth: "600px", margin: "0 auto", paddingTop: "var(--space-3xl)" }}>

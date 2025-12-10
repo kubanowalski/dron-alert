@@ -4,7 +4,10 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { getValidIncidentTypes, getValidIncidentStatuses, VALIDATION_LIMITS } from "@/lib/constants";
 
-// GET single incident
+/**
+ * API: Pobieranie szczegółów incydentu (GET)
+ * Dostęp: Właściciel zgłoszenia LUB Admin.
+ */
 export async function GET(request, { params }) {
     const session = await getServerSession(authOptions);
 
@@ -22,7 +25,7 @@ export async function GET(request, { params }) {
             return NextResponse.json({ error: "Incident not found" }, { status: 404 });
         }
 
-        // Check if user is owner or admin
+        // Sprawdzamy uprawnienia: Właściciel lub Admin
         if (incident.userId !== session.user.id && session.user.role !== "ADMIN") {
             return NextResponse.json(
                 { error: "Forbidden: You can only view your own incidents" },
@@ -37,7 +40,11 @@ export async function GET(request, { params }) {
     }
 }
 
-// PATCH update incident
+/**
+ * API: Aktualizacja incydentu (PATCH)
+ * - Właściciel: Może edytować opis, typ, lokalizację.
+ * - Admin: Może zmieniać STATUS (np. na ACCEPTED).
+ */
 export async function PATCH(request, { params }) {
     const session = await getServerSession(authOptions);
 
@@ -50,7 +57,7 @@ export async function PATCH(request, { params }) {
         const body = await request.json();
         const { description, type, status, location } = body;
 
-        // Validate input data
+        // Walidacja danych
         if (type && !getValidIncidentTypes().includes(type)) {
             return NextResponse.json(
                 { error: "Invalid incident type" },
@@ -86,7 +93,7 @@ export async function PATCH(request, { params }) {
             }
         }
 
-        // Check if trying to update status - only admins can do this
+        // Sprawdzamy uprawnienia do zmiany statusu (TYLKO ADMIN)
         if (status && session.user.role !== "ADMIN") {
             return NextResponse.json(
                 { error: "Forbidden: Only administrators can change incident status" },
@@ -94,7 +101,7 @@ export async function PATCH(request, { params }) {
             );
         }
 
-        // For non-status updates, verify ownership
+        // Jeśli to nie zmiana statusu, sprawdzamy czy user jest właścicielem
         if (!status) {
             const incident = await prisma.incident.findUnique({
                 where: { id },
@@ -130,7 +137,11 @@ export async function PATCH(request, { params }) {
     }
 }
 
-// DELETE/CANCEL incident (soft delete by setting status to CANCELLED)
+/**
+ * API: Anulowanie incydentu (DELETE)
+ * Nie usuwamy go fizycznie z bazy, tylko ustawiamy status na CANCELLED.
+ * Robić to może tylko właściciel lub Admin.
+ */
 export async function DELETE(request, { params }) {
     const session = await getServerSession(authOptions);
 
@@ -141,7 +152,7 @@ export async function DELETE(request, { params }) {
     try {
         const { id } = await params;
 
-        // Verify ownership before cancelling
+        // Sprawdzamy czy zgłoszenie istnieje i do kogo należy
         const incident = await prisma.incident.findUnique({
             where: { id },
             select: { userId: true },
@@ -158,6 +169,7 @@ export async function DELETE(request, { params }) {
             );
         }
 
+        // Soft delete (miękkie usuwanie) - zmiana statusu
         const updatedIncident = await prisma.incident.update({
             where: { id },
             data: { status: "CANCELLED" },

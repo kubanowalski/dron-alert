@@ -1,3 +1,7 @@
+/*
+* Page Module CSS
+* Specific styles for the landing page using CSS Modules for scoping.
+*/
 .page {
   --background: #fafafa;
   --foreground: #fff;

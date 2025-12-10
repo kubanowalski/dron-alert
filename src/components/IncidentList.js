@@ -6,7 +6,13 @@ import {
     getLocationText
 } from "@/lib/constants";
 
+/**
+ * Komponent IncidentList (Lista Zgłoszeń)
+ * Wyświetla siatkę kafelków z incydentami.
+ * Każdy kafelek pokazuje typ, datę, status i krótki opis.
+ */
 export default function IncidentList({ incidents, showUserInfo = false, isAdmin = false }) {
+    // Jeśli nie ma żadnych zgłoszeń, wyświetl komunikat "Brak zgłoszeń"
     if (!Array.isArray(incidents) || incidents.length === 0) {
         return (
             <div className="card text-center">
@@ -34,6 +40,7 @@ export default function IncidentList({ incidents, showUserInfo = false, isAdmin 
                                         minute: '2-digit'
                                     })}
                                 </p>
+                                {/* Show user info if requested (e.g. in Admin Panel) */}
                                 {showUserInfo && incident.user && (
                                     <p className="text-xs text-muted mb-0" style={{ marginTop: "var(--space-xs)" }}>
                                         👤 {incident.user.name || incident.user.email}

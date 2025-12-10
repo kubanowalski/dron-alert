@@ -2,6 +2,13 @@ import Link from 'next/link';
 import ThemeToggle from './ThemeToggle';
 import UserMenu from './UserMenu';
 
+/**
+ * Główny Układ Strony (Layout)
+ * Tutaj ustalamy wygląd wspólny dla wszystkich podstron:
+ * - Pasek nawigacji na górze (Navbar)
+ * - Miejsce na treść (Container)
+ * - Stopka autorska na dole (Footer)
+ */
 export default function Layout({ children }) {
     return (
         <>
@@ -17,11 +24,14 @@ export default function Layout({ children }) {
                         <Link href="/dashboard" className="nav-link">
                             Dashboard
                         </Link>
+                        {/* Przełącznik trybu ciemnego/jasnego */}
                         <ThemeToggle />
+                        {/* Menu użytkownika (Logowanie/Wylogowanie) */}
                         <UserMenu />
                     </div>
                 </div>
             </nav>
+            {/* Główny kontener na treść strony */}
             <div className="container">
                 <main>{children}</main>
             </div>

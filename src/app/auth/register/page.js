@@ -4,6 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+/**
+ * Strona Rejestracji
+ * Formularz tworzenia nowego konta użytkownika.
+ */
 export default function RegisterPage() {
     const router = useRouter();
     const [formData, setFormData] = useState({
@@ -22,7 +26,7 @@ export default function RegisterPage() {
         e.preventDefault();
         setError("");
 
-        // Walidacja
+        // Simple Validation
         if (formData.password !== formData.confirmPassword) {
             setError("Hasła nie są identyczne");
             return;
@@ -31,6 +35,7 @@ export default function RegisterPage() {
         setLoading(true);
 
         try {
+            // Register API call
             const res = await fetch("/api/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

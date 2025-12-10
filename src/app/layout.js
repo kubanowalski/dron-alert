@@ -7,6 +7,11 @@ export const metadata = {
   description: "System zgłaszania incydentów z dronami",
 };
 
+/**
+ * RootLayout Component
+ * The top-level layout for the entire application.
+ * Wraps everything in the AuthProvider and main Layout.
+ */
 export default function RootLayout({ children }) {
   return (
     <html lang="pl" suppressHydrationWarning>

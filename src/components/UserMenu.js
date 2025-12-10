@@ -4,6 +4,12 @@ import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+/**
+ * Menu Użytkownika (Prawy górny róg)
+ * To, co tu widzimy, zależy od tego czy jesteś zalogowany:
+ * - NIE: przyciski "Zaloguj się" i "Zarejestruj się"
+ * - TAK: Twoje imię i rozwijane menu (Profil, wylogowanie)
+ */
 export default function UserMenu() {
     const { data: session, status } = useSession();
     const router = useRouter();
@@ -12,6 +18,7 @@ export default function UserMenu() {
         return null;
     }
 
+    // Stan niezalogowany: Przycisk logowania i rejestracji
     if (!session) {
         return (
             <div style={{ display: "flex", gap: "var(--space-md)", alignItems: "center" }}>
@@ -25,6 +32,7 @@ export default function UserMenu() {
         );
     }
 
+    // Stan zalogowany: Rozwijane menu użytkownika
     return (
         <div className="user-menu">
             <button className="user-menu-trigger">
@@ -40,6 +48,7 @@ export default function UserMenu() {
                     </svg>
                     Moje konto
                 </Link>
+                {/* Admin-only links */}
                 {session.user.role === "ADMIN" && (
                     <Link href="/admin" className="user-menu-item">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">

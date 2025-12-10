@@ -3,41 +3,53 @@ const nextConfig = {
   /* config options here */
   reactCompiler: true,
 
+  /**
+   * Konfiguracja nagłówków bezpieczeństwa.
+   * Te ustawienia chronią aplikację przed atakami hakerskimi.
+   */
   async headers() {
     return [
       {
-        // Apply security headers to all routes
+        // Zastosuj te zasady do wszystkich stron w aplikacji
         source: '/:path*',
         headers: [
           {
+            // Przyspiesza ładowanie stron poprzez wcześniejsze sprawdzanie adresów serwerów
             key: 'X-DNS-Prefetch-Control',
             value: 'on'
           },
           {
+            // Wymusza bezpieczne połączenie (HTTPS), żeby nikt nie mógł podsłuchać danych
             key: 'Strict-Transport-Security',
             value: 'max-age=63072000; includeSubDomains; preload'
           },
           {
+            // Zapobiega osadzaniu naszej strony na innych stronach (ochrona przed clickjackingiem)
             key: 'X-Frame-Options',
             value: 'SAMEORIGIN'
           },
           {
+            // Blokuje przeglądarkę przed zgadywaniem typu pliku (bezpieczeństwo)
             key: 'X-Content-Type-Options',
             value: 'nosniff'
           },
           {
+            // Blokuje złośliwe skrypty (XSS)
             key: 'X-XSS-Protection',
             value: '1; mode=block'
           },
           {
+            // Kontroluje jakie informacje są wysyłane, gdy użytkownik klika w link do innej strony
             key: 'Referrer-Policy',
             value: 'origin-when-cross-origin'
           },
           {
+            // Blokuje dostęp do kamery, mikrofonu i lokalizacji (z wyjątkiem lokalizacji na żądanie)
             key: 'Permissions-Policy',
             value: 'camera=(), microphone=(), geolocation=(self)'
           },
-          // Content Security Policy - allows Leaflet maps and external resources
+          // Polityka Bezpieczeństwa Treści (CSP) - określa co wolno ładować na stronie
+          // Pozwalamy na mapy (OpenStreetMap) i zewnętrzne skrypty tylko z zaufanych źródeł
           {
             key: 'Content-Security-Policy',
             value: [

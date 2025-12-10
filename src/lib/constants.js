@@ -1,10 +1,11 @@
 /**
- * Application-wide constants
- * Single source of truth for enums, mappings, and configuration
+ * Stałe aplikacji
+ * Tutaj trzymamy wszystkie ważne wartości, napisy i ustawienia w jednym miejscu.
+ * Dzięki temu łatwo je zmienić i używać w całym kodzie, nie robiąc "literówek".
  */
 
 // ============================================================================
-// INCIDENT TYPES
+// TYPY ZGŁOSZEŃ (INCYDENTÓW)
 // ============================================================================
 
 export const INCIDENT_TYPES = {
@@ -14,6 +15,7 @@ export const INCIDENT_TYPES = {
     OTHER: 'OTHER',
 };
 
+// Etykiety wyświetlane użytkownikowi (po polsku)
 export const INCIDENT_TYPE_LABELS = {
     [INCIDENT_TYPES.RESTRICTED_ZONE]: 'Strefa zakazana',
     [INCIDENT_TYPES.PRIVACY_VIOLATION]: 'Naruszenie prywatności',
@@ -22,10 +24,10 @@ export const INCIDENT_TYPE_LABELS = {
 };
 
 export const INCIDENT_TYPE_COLORS = {
-    [INCIDENT_TYPES.RESTRICTED_ZONE]: '#dc2626',     // red-600
-    [INCIDENT_TYPES.PRIVACY_VIOLATION]: '#ea580c',   // orange-600
-    [INCIDENT_TYPES.DANGEROUS_FLIGHT]: '#ca8a04',    // yellow-600
-    [INCIDENT_TYPES.OTHER]: '#64748b',               // slate-500
+    [INCIDENT_TYPES.RESTRICTED_ZONE]: '#dc2626',     // czerwony
+    [INCIDENT_TYPES.PRIVACY_VIOLATION]: '#ea580c',   // pomarańczowy
+    [INCIDENT_TYPES.DANGEROUS_FLIGHT]: '#ca8a04',    // żółty
+    [INCIDENT_TYPES.OTHER]: '#64748b',               // szary
 };
 
 export const INCIDENT_TYPE_ICONS = {
@@ -36,7 +38,7 @@ export const INCIDENT_TYPE_ICONS = {
 };
 
 // ============================================================================
-// INCIDENT STATUSES
+// STATUSY ZGŁOSZEŃ
 // ============================================================================
 
 export const INCIDENT_STATUSES = {
@@ -56,11 +58,11 @@ export const INCIDENT_STATUS_LABELS = {
 };
 
 export const INCIDENT_STATUS_COLORS = {
-    [INCIDENT_STATUSES.REPORTED]: '#3b82f6',    // blue-500
-    [INCIDENT_STATUSES.ACCEPTED]: '#22c55e',    // green-500
-    [INCIDENT_STATUSES.REJECTED]: '#ef4444',    // red-500
-    [INCIDENT_STATUSES.CANCELLED]: '#64748b',   // slate-500
-    [INCIDENT_STATUSES.ARCHIVED]: '#9ca3af',    // gray-400
+    [INCIDENT_STATUSES.REPORTED]: '#3b82f6',    // niebieski
+    [INCIDENT_STATUSES.ACCEPTED]: '#22c55e',    // zielony
+    [INCIDENT_STATUSES.REJECTED]: '#ef4444',    // czerwony
+    [INCIDENT_STATUSES.CANCELLED]: '#64748b',   // szary
+    [INCIDENT_STATUSES.ARCHIVED]: '#9ca3af',    // jasny szary
 };
 
 export const INCIDENT_STATUS_BADGE_CLASSES = {
@@ -72,7 +74,7 @@ export const INCIDENT_STATUS_BADGE_CLASSES = {
 };
 
 // ============================================================================
-// USER ROLES
+// ROLE UŻYTKOWNIKÓW
 // ============================================================================
 
 export const USER_ROLES = {
@@ -86,42 +88,36 @@ export const USER_ROLE_LABELS = {
 };
 
 // ============================================================================
-// VALIDATION LIMITS
+// LIMITY WALIDACJI (Sprawdzania poprawności danych)
 // ============================================================================
 
 export const VALIDATION_LIMITS = {
-    DESCRIPTION_MAX_LENGTH: 500,
-    NAME_MAX_LENGTH: 100,
-    EMAIL_MAX_LENGTH: 255,
-    PASSWORD_MIN_LENGTH: 8,
+    DESCRIPTION_MAX_LENGTH: 500, // Max znaków w opisie
+    NAME_MAX_LENGTH: 100,        // Max znaków w nazwie
+    EMAIL_MAX_LENGTH: 255,       // Max znaków w emailu
+    PASSWORD_MIN_LENGTH: 8,      // Min znaków w haśle
 };
 
 // ============================================================================
-// HELPER FUNCTIONS
+// FUNKCJE POMOCNICZE
 // ============================================================================
 
 /**
- * Get incident type label
- * @param {string} type - Incident type
- * @returns {string} Localized label
+ * Pobiera nazwę typu incydentu (po polsku)
  */
 export function getIncidentTypeLabel(type) {
     return INCIDENT_TYPE_LABELS[type] || type;
 }
 
 /**
- * Get incident status label
- * @param {string} status - Incident status
- * @returns {string} Localized label
+ * Pobiera nazwę statusu (po polsku)
  */
 export function getIncidentStatusLabel(status) {
     return INCIDENT_STATUS_LABELS[status] || status;
 }
 
 /**
- * Get incident status badge class
- * @param {string} status - Incident status
- * @returns {string} CSS class name
+ * Pobiera klasę CSS dla odznaki statusu (kolorowe tło statusu)
  */
 export function getIncidentStatusBadgeClass(status) {
     const baseClass = INCIDENT_STATUS_BADGE_CLASSES[status] || 'badge-reported';
@@ -129,9 +125,7 @@ export function getIncidentStatusBadgeClass(status) {
 }
 
 /**
- * Get location text from location JSON
- * @param {string|Object} locationStr - Location JSON string or object
- * @returns {string} Formatted location text
+ * Formatuje lokalizację do tekstu (adres lub współrzędne)
  */
 export function getLocationText(locationStr) {
     try {

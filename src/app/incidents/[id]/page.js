@@ -11,9 +11,16 @@ import {
     getLocationText
 } from "@/lib/constants";
 
+// Importujemy mapy dynamicznie, żeby nie psuły strony podczas ładowania na serwerze
 const MapView = dynamic(() => import("@/components/Map/MapView"), { ssr: false });
 const MapPicker = dynamic(() => import("@/components/Map/MapPicker"), { ssr: false });
 
+/**
+ * Strona Szczegółów Zgłoszenia
+ * Tutaj można zobaczyć pełne info o incydencie.
+ * - Właściciel może EDYTOWAĆ lub ANULOWAĆ zgłoszenie.
+ * - Administrator może ZAAKCEPTOWAĆ lub ODRZUCIĆ zgłoszenie.
+ */
 export default function IncidentDetailsPage() {
     const { id } = useParams();
     const router = useRouter();
@@ -31,6 +38,7 @@ export default function IncidentDetailsPage() {
         setFormData(prev => ({ ...prev, location: loc }));
     }, []);
 
+    // Fetch incident details
     useEffect(() => {
         fetch(`/api/incidents/${id}`)
             .then((res) => res.json())
@@ -48,6 +56,7 @@ export default function IncidentDetailsPage() {
             });
     }, [id]);
 
+    // Handle updates to incident details
     const handleUpdate = async () => {
         setMessage({ type: '', text: '' });
         const res = await fetch(`/api/incidents/${id}`, {
@@ -65,6 +74,7 @@ export default function IncidentDetailsPage() {
         }
     };
 
+    // Cancel incident
     const handleCancel = async () => {
         setMessage({ type: '', text: '' });
         setShowConfirm(false);
@@ -86,6 +96,7 @@ export default function IncidentDetailsPage() {
         }
     };
 
+    // Change incident status (Admin only)
     const handleStatusChange = async (newStatus) => {
         setMessage({ type: '', text: '' });
         const res = await fetch(`/api/incidents/${id}`, {
@@ -249,6 +260,7 @@ export default function IncidentDetailsPage() {
                     </>
                 )}
 
+                {/* Admin Actions */}
                 {isAdmin && (
                     <div style={{ marginTop: "var(--space-2xl)", paddingTop: "var(--space-xl)", borderTop: "var(--border-width) solid var(--color-border)" }}>
                         <h3 className="mb-lg">Panel administratora</h3>

@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 
+// Ładujemy mapę dynamicznie (tylko w przeglądarce), bo serwer nie potrafi wyświetlać map
 const MapPicker = dynamic(() => import("@/components/Map/MapPicker"), {
     ssr: false,
 });
@@ -12,6 +13,7 @@ export default function IncidentForm() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
+    // Tutaj przechowujemy dane wpisane w formularzu
     const [formData, setFormData] = useState({
         type: "",
         description: "",
@@ -19,23 +21,26 @@ export default function IncidentForm() {
         photoUrl: "",
     });
 
+    // Funkcja zapisująca wybraną na mapie lokalizację
     const handleLocationSelect = useCallback((loc) => {
         setFormData((prev) => ({ ...prev, location: loc }));
     }, []);
 
+    // Wysyłanie formularza (gdy klikniesz "Wyślij")
     const handleSubmit = async (e) => {
-        e.preventDefault();
+        e.preventDefault(); // Zatrzymaj domyślne przeładowanie strony
         setLoading(true);
         setSuccess(false);
 
         try {
+            // Wyślij dane do naszego serwera (API)
             const res = await fetch("/api/incidents", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     type: formData.type,
                     description: formData.description,
-                    location: JSON.stringify(formData.location),
+                    location: JSON.stringify(formData.location), // Zamień obiekt lokalizacji na tekst
                     photoUrl: formData.photoUrl || null,
                 }),
             });
@@ -48,7 +53,7 @@ export default function IncidentForm() {
 
             setSuccess(true);
 
-            // Clear form but don't redirect
+            // Wyczyść formularz
             setFormData({
                 type: "",
                 description: "",
@@ -62,6 +67,7 @@ export default function IncidentForm() {
         }
     };
 
+    // Jeśli się udało, wyświetl komunikat sukcesu
     if (success) {
         return (
             <div style={{ maxWidth: "600px", margin: "0 auto", paddingTop: "var(--space-3xl)", textAlign: "center" }}>
