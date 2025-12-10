@@ -5,14 +5,22 @@ import { getToken } from 'next-auth/jwt';
 // Sprawdza każde wejście na stronę i decyduje, czy użytkownik może ją zobaczyć.
 export async function middleware(request) {
     // Pobieramy "przepustkę" (token) użytkownika
-    const token = await getToken({ req: request });
+    // WAŻNE: W środowisku produkcyjnym (Vercel) musimy upewnić się, że secret jest dostępny
+    const token = await getToken({ 
+        req: request, 
+        secret: process.env.NEXTAUTH_SECRET 
+    });
+
     const { pathname } = request.nextUrl;
+
+    console.log(`[Middleware] Path: ${pathname}, Token found: ${!!token}, Role: ${token?.role}`);
 
     // Ochrona panelu administratora (/admin)
     // Tylko użytkownicy z rolą ADMIN mogą tu wejść
     if (pathname.startsWith('/admin')) {
         // Jeśli nie jest zalogowany -> wyślij do logowania
         if (!token) {
+            console.log("[Middleware] Redirecting to login (No token for /admin)");
             return NextResponse.redirect(new URL('/auth/login', request.url));
         }
 
