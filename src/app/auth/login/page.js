@@ -46,7 +46,7 @@ function LoginForm() {
                 setError(result.error);
             } else {
                 // Sukces -> idź do dashboardu
-                router.push("/dashboard");
+                router.push("/");
                 router.refresh();
             }
         } catch (err) {

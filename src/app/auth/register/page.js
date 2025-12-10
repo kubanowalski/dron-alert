@@ -59,9 +59,9 @@ export default function RegisterPage() {
             setSuccess(true);
             setLoading(false); // Set loading to false on success
 
-            // Redirect to login after showing success message
+            // Redirect to homepage after showing success message
             setTimeout(() => {
-                router.push("/auth/login?registered=true");
+                router.push("/");
             }, 2000);
         } catch (err) {
             setError("Wystąpił błąd podczas rejestracji");
@@ -80,7 +80,7 @@ export default function RegisterPage() {
                     border: "var(--border-width) solid #16a34a"
                 }}>
                     <h2 style={{ marginBottom: "var(--space-md)" }}>✅ Rejestracja zakończona!</h2>
-                    <p className="mb-0">Konto zostało utworzone. Za chwilę przekierujemy Cię do logowania...</p>
+                    <p className="mb-0">Konto zostało utworzone. Za chwilę przekierujemy Cię na stronę główną...</p>
                 </div>
             </div>
         );
