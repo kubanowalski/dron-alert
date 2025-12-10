@@ -172,7 +172,7 @@ export default function IncidentDetailsPage() {
             )}
 
             <div className="card">
-                <div className="flex-between mb-lg">
+                <div className="flex-between mb-lg" style={{ alignItems: 'flex-start', flexWrap: 'wrap', gap: 'var(--space-md)' }}>
                     <div>
                         <h2 className="mb-xs">{getIncidentTypeLabel(incident.type)}</h2>
                         <p className="text-xs text-muted mb-0">
@@ -185,9 +185,41 @@ export default function IncidentDetailsPage() {
                             })}
                         </p>
                     </div>
-                    <span className={getIncidentStatusBadgeClass(incident.status)}>
-                        {getIncidentStatusLabel(incident.status)}
-                    </span>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 'var(--space-sm)' }}>
+                        <span className={getIncidentStatusBadgeClass(incident.status)}>
+                            {getIncidentStatusLabel(incident.status)}
+                        </span>
+
+                        {isAdmin && (
+                            <div style={{ display: 'flex', gap: 'var(--space-xs)', flexWrap: 'wrap', justifyContent: 'flex-end', marginTop: 'var(--space-xs)' }}>
+                                <button
+                                    onClick={() => handleStatusChange("ACCEPTED")}
+                                    className="btn btn-sm"
+                                    style={{ backgroundColor: "#16a34a", color: "white", borderColor: "#16a34a", padding: "0.25rem 0.5rem", fontSize: "0.875rem" }}
+                                    title="Zatwierdź"
+                                >
+                                    ✓ Zatwierdź
+                                </button>
+                                <button
+                                    onClick={() => handleStatusChange("REJECTED")}
+                                    className="btn btn-sm"
+                                    style={{ backgroundColor: "#dc2626", color: "white", borderColor: "#dc2626", padding: "0.25rem 0.5rem", fontSize: "0.875rem" }}
+                                    title="Odrzuć"
+                                >
+                                    ✕ Odrzuć
+                                </button>
+                                <button
+                                    onClick={() => handleStatusChange("ARCHIVED")}
+                                    className="btn btn-secondary btn-sm"
+                                    style={{ padding: "0.25rem 0.5rem", fontSize: "0.875rem" }}
+                                    title="Archiwizuj"
+                                >
+                                    Archiwizuj
+                                </button>
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {!isEditing && (
@@ -260,34 +292,7 @@ export default function IncidentDetailsPage() {
                     </>
                 )}
 
-                {/* Admin Actions */}
-                {isAdmin && (
-                    <div style={{ marginTop: "var(--space-2xl)", paddingTop: "var(--space-xl)", borderTop: "var(--border-width) solid var(--color-border)" }}>
-                        <h3 className="mb-lg">Panel administratora</h3>
-                        <div style={{ display: "flex", gap: "var(--space-md)", flexWrap: "wrap" }}>
-                            <button
-                                onClick={() => handleStatusChange("ACCEPTED")}
-                                className="btn"
-                                style={{ backgroundColor: "#16a34a", color: "white", borderColor: "#16a34a" }}
-                            >
-                                Zatwierdź
-                            </button>
-                            <button
-                                onClick={() => handleStatusChange("REJECTED")}
-                                className="btn"
-                                style={{ backgroundColor: "#dc2626", color: "white", borderColor: "#dc2626" }}
-                            >
-                                Odrzuć
-                            </button>
-                            <button
-                                onClick={() => handleStatusChange("ARCHIVED")}
-                                className="btn btn-secondary"
-                            >
-                                Archiwizuj
-                            </button>
-                        </div>
-                    </div>
-                )}
+
             </div>
         </div>
     );
