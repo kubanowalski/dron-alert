@@ -45,3 +45,6 @@ next-env.d.ts
 
 # local npm cache
 .npm_cache/
+
+# database dumps (keep export script, ignore dumps)
+scripts/dump.sql
