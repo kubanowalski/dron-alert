@@ -10,7 +10,7 @@ import Link from "next/link";
  * - NIE: przyciski "Zaloguj się" i "Zarejestruj się"
  * - TAK: Twoje imię i rozwijane menu (Profil, wylogowanie)
  */
-export default function UserMenu() {
+export default function UserMenu({ onNavigate } = {}) {
     const { data: session, status } = useSession();
     const router = useRouter();
 
@@ -21,14 +21,21 @@ export default function UserMenu() {
     // Stan niezalogowany: Przycisk logowania i rejestracji
     if (!session) {
         return (
-            <div style={{ display: "flex", gap: "var(--space-md)", alignItems: "center" }}>
-                <Link href="/auth/login" className="nav-link">
+            <>
+                {/* Desktop: oba linki */}
+                <div className="user-menu-auth nav-desktop-only">
+                    <Link href="/auth/login" className="nav-link" onClick={onNavigate}>
+                        Zaloguj się
+                    </Link>
+                    <Link href="/auth/register" className="btn btn-primary btn-sm" onClick={onNavigate}>
+                        Zarejestruj się
+                    </Link>
+                </div>
+                {/* Mobile: jeden przycisk */}
+                <Link href="/auth/login" className="btn btn-primary nav-mobile-only nav-mobile-login" onClick={onNavigate}>
                     Zaloguj się
                 </Link>
-                <Link href="/auth/register" className="btn btn-primary btn-sm">
-                    Zarejestruj się
-                </Link>
-            </div>
+            </>
         );
     }
 

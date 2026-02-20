@@ -7,9 +7,9 @@ import Link from "next/link";
  */
 export default function Home() {
   return (
-    <div style={{ maxWidth: "600px", margin: "0 auto", paddingTop: "var(--space-3xl)" }}>
+    <div className="hero">
       <div style={{ textAlign: "center", marginBottom: "var(--space-3xl)" }}>
-        <h1 style={{ fontSize: "3rem", marginBottom: "var(--space-md)", fontWeight: 600 }}>
+        <h1 className="hero-title">
           DronAlert
         </h1>
         <p className="text-muted" style={{ fontSize: "var(--font-size-lg)", marginBottom: 0 }}>
@@ -17,7 +17,7 @@ export default function Home() {
         </p>
       </div>
 
-      <div style={{ display: "flex", gap: "var(--space-md)", justifyContent: "center", flexWrap: "wrap" }}>
+      <div className="hero-actions">
         <Link href="/report" className="btn btn-primary">
           Zgłoś incydent
         </Link>
