@@ -1,6 +1,4 @@
-import Link from 'next/link';
-import ThemeToggle from './ThemeToggle';
-import UserMenu from './UserMenu';
+import Navbar from './Navbar';
 
 /**
  * Główny Układ Strony (Layout)
@@ -12,25 +10,7 @@ import UserMenu from './UserMenu';
 export default function Layout({ children }) {
     return (
         <>
-            <nav className="navbar">
-                <div className="nav-content">
-                    <Link href="/" className="nav-brand">
-                        DronAlert
-                    </Link>
-                    <div className="nav-links">
-                        <Link href="/report" className="nav-link">
-                            Zgłoś
-                        </Link>
-                        <Link href="/dashboard" className="nav-link">
-                            Dashboard
-                        </Link>
-                        {/* Przełącznik trybu ciemnego/jasnego */}
-                        <ThemeToggle />
-                        {/* Menu użytkownika (Logowanie/Wylogowanie) */}
-                        <UserMenu />
-                    </div>
-                </div>
-            </nav>
+            <Navbar />
             {/* Główny kontener na treść strony */}
             <div className="container">
                 <main>{children}</main>

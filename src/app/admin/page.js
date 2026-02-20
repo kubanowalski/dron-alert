@@ -150,12 +150,7 @@ export default function AdminPage() {
             <h1 className="mb-xl">Panel administratora</h1>
 
             {/* Statistics Cards */}
-            <div style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-                gap: "var(--space-lg)",
-                marginBottom: "var(--space-2xl)"
-            }}>
+            <div className="stats-grid">
                 <div className="card" style={{ textAlign: "center" }}>
                     <p className="text-xs text-muted mb-xs">Wszystkie zgłoszenia</p>
                     <h2 className="mb-0" style={{ fontSize: "2rem" }}>{stats.total}</h2>

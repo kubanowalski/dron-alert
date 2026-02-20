@@ -57,7 +57,7 @@ function LoginForm() {
     };
 
     return (
-        <div style={{ maxWidth: "400px", margin: "0 auto", paddingTop: "var(--space-3xl)" }}>
+        <div className="auth-container">
             <h1 className="mb-xl" style={{ textAlign: "center" }}>Logowanie</h1>
 
             {showRegisteredMessage && (

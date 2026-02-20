@@ -71,7 +71,7 @@ export default function RegisterPage() {
 
     if (success) {
         return (
-            <div style={{ maxWidth: "400px", margin: "0 auto", paddingTop: "var(--space-3xl)", textAlign: "center" }}>
+            <div className="auth-container" style={{ textAlign: "center" }}>
                 <div style={{
                     padding: "var(--space-2xl)",
                     backgroundColor: "#dcfce7",
@@ -87,7 +87,7 @@ export default function RegisterPage() {
     }
 
     return (
-        <div style={{ maxWidth: "500px", margin: "0 auto", paddingTop: "var(--space-3xl)" }}>
+        <div className="auth-container-wide">
             <div className="card">
                 <h1 className="mb-xl">Rejestracja</h1>
 
