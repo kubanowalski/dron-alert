@@ -428,6 +428,8 @@ p {
   padding: var(--space-lg);
   margin-bottom: var(--space-lg);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  overflow: hidden;
+  min-width: 0;
 }
 
 .card:hover {
@@ -527,6 +529,7 @@ p {
 /* Grid */
 .grid {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-md);
 }
 
@@ -612,6 +615,14 @@ p {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.card .flex-between {
+  align-items: flex-start;
+}
+
+.card .flex-between > .badge {
+  margin-top: 1px;
 }
 
 .gap-sm {
@@ -921,5 +932,59 @@ p {
   .flex-between {
     flex-wrap: wrap;
     gap: var(--space-sm);
+  }
+}
+
+/* Card header responsive — smaller title on mobile so badges fit */
+@media (max-width: 767px) {
+  .card h3 {
+    font-size: var(--font-size-base);
+  }
+
+  .card .flex-between {
+    flex-wrap: nowrap;
+    gap: var(--space-sm);
+  }
+
+  .card .flex-between > div:first-child {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .card .flex-between > .badge {
+    flex-shrink: 0;
+  }
+}
+
+/* Admin actions grid */
+.admin-actions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-sm);
+}
+
+@media (max-width: 767px) {
+  .admin-actions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Map toggle — hidden on desktop, visible on mobile */
+.map-toggle-btn {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .map-toggle-btn {
+    display: block;
+    width: 100%;
+  }
+
+  .map-container {
+    display: none;
+  }
+
+  .map-container-open {
+    display: block;
   }
 }

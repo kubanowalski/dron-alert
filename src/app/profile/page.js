@@ -19,6 +19,8 @@ export default function ProfilePage() {
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deleting, setDeleting] = useState(false);
     const [formData, setFormData] = useState({
         email: "",
         name: "",
@@ -111,6 +113,31 @@ export default function ProfilePage() {
             setError("Wystąpił błąd podczas aktualizacji profilu");
         } finally {
             setSaving(false);
+        }
+    };
+
+    // Obsługa usuwania konta
+    const handleDeleteAccount = async () => {
+        setDeleting(true);
+        try {
+            const res = await fetch("/api/account/delete", {
+                method: "DELETE",
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                setError(data.error || "Wystąpił błąd podczas usuwania konta");
+                setShowDeleteConfirm(false);
+                setDeleting(false);
+                return;
+            }
+
+            // Po udanym usunięciu — wylogowanie i przekierowanie na stronę główną
+            signOut({ callbackUrl: "/" });
+        } catch (err) {
+            setError("Wystąpił błąd podczas usuwania konta");
+            setShowDeleteConfirm(false);
+            setDeleting(false);
         }
     };
 
@@ -234,7 +261,7 @@ export default function ProfilePage() {
                         />
                     </div>
 
-                    <div style={{ display: "flex", gap: "var(--space-md)", marginTop: "var(--space-xl)" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "var(--space-xl)" }}>
                         <button
                             type="submit"
                             className="btn btn-primary"
@@ -246,13 +273,59 @@ export default function ProfilePage() {
                         <button
                             type="button"
                             className="btn btn-danger"
-                            onClick={() => signOut({ callbackUrl: "/" })}
+                            onClick={() => setShowDeleteConfirm(true)}
                         >
-                            Wyloguj się
+                            Usuń konto
                         </button>
                     </div>
                 </form>
             </div>
+
+            {/* Modal potwierdzenia usunięcia konta */}
+            {showDeleteConfirm && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 9999
+                }}>
+                    <div style={{
+                        backgroundColor: 'var(--color-surface)',
+                        padding: 'var(--space-xl)',
+                        borderRadius: 'var(--border-radius)',
+                        maxWidth: '400px',
+                        width: '90%',
+                        border: 'var(--border-width) solid var(--color-border)'
+                    }}>
+                        <h3 className="mb-md">Usuwanie konta</h3>
+                        <p className="mb-lg">
+                            Czy na pewno chcesz usunąć konto? Uwaga, tej akcji nie można cofnąć.
+                        </p>
+                        <div style={{ display: 'flex', gap: 'var(--space-md)', justifyContent: 'flex-end' }}>
+                            <button
+                                onClick={() => setShowDeleteConfirm(false)}
+                                className="btn btn-secondary"
+                                disabled={deleting}
+                            >
+                                Anuluj
+                            </button>
+                            <button
+                                onClick={handleDeleteAccount}
+                                className="btn btn-danger"
+                                disabled={deleting}
+                            >
+                                {deleting ? "Usuwanie..." : "Tak, usuń konto"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

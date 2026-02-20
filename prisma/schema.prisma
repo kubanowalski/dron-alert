@@ -33,5 +33,6 @@ model User {
   role      String     @default("USER") // Rola: Zwykły użytkownik (USER) lub Administrator (ADMIN)
   createdAt DateTime   @default(now())  // Kiedy założono konto
   updatedAt DateTime   @updatedAt       // Automatyczna data ostatniej aktualizacji
+  deleted   Boolean    @default(false)  // Czy konto zostało usunięte (miękkie usuwanie)
   Incident  Incident[] // Lista zgłoszeń wysłanych przez tego użytkownika
 }
