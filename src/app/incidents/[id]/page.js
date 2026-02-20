@@ -31,6 +31,7 @@ export default function IncidentDetailsPage() {
     const [formData, setFormData] = useState({});
     const [message, setMessage] = useState({ type: '', text: '' });
     const [showConfirm, setShowConfirm] = useState(false);
+    const [showMap, setShowMap] = useState(false);
 
     const isAdmin = session?.user?.role === "ADMIN";
 
@@ -186,40 +187,9 @@ export default function IncidentDetailsPage() {
                         </p>
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 'var(--space-sm)' }}>
-                        <span className={getIncidentStatusBadgeClass(incident.status)}>
-                            {getIncidentStatusLabel(incident.status)}
-                        </span>
-
-                        {isAdmin && (
-                            <div style={{ display: 'flex', gap: 'var(--space-xs)', flexWrap: 'wrap', justifyContent: 'flex-end', marginTop: 'var(--space-xs)' }}>
-                                <button
-                                    onClick={() => handleStatusChange("ACCEPTED")}
-                                    className="btn btn-sm"
-                                    style={{ backgroundColor: "#16a34a", color: "white", borderColor: "#16a34a", padding: "0.25rem 0.5rem", fontSize: "0.875rem" }}
-                                    title="Zatwierdź"
-                                >
-                                    ✓ Zatwierdź
-                                </button>
-                                <button
-                                    onClick={() => handleStatusChange("REJECTED")}
-                                    className="btn btn-sm"
-                                    style={{ backgroundColor: "#dc2626", color: "white", borderColor: "#dc2626", padding: "0.25rem 0.5rem", fontSize: "0.875rem" }}
-                                    title="Odrzuć"
-                                >
-                                    ✕ Odrzuć
-                                </button>
-                                <button
-                                    onClick={() => handleStatusChange("ARCHIVED")}
-                                    className="btn btn-secondary btn-sm"
-                                    style={{ padding: "0.25rem 0.5rem", fontSize: "0.875rem" }}
-                                    title="Archiwizuj"
-                                >
-                                    Archiwizuj
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                    <span className={getIncidentStatusBadgeClass(incident.status)}>
+                        {getIncidentStatusLabel(incident.status)}
+                    </span>
                 </div>
 
                 {!isEditing && (
@@ -232,13 +202,19 @@ export default function IncidentDetailsPage() {
                         <div className="mb-lg">
                             <h3 className="mb-sm" style={{ fontSize: "var(--font-size-base)", fontWeight: 600 }}>Lokalizacja</h3>
                             <p className="text-muted mb-sm">📍 {getLocationText(incident.location)}</p>
-                            <div style={{ borderRadius: "var(--border-radius)", overflow: "hidden" }}>
+                            <button
+                                className="btn btn-secondary map-toggle-btn mb-sm"
+                                onClick={() => setShowMap(!showMap)}
+                            >
+                                {showMap ? "Zwiń mapę" : "Rozwiń mapę"}
+                            </button>
+                            <div className={`map-container${showMap ? " map-container-open" : ""}`} style={{ borderRadius: "var(--border-radius)", overflow: "hidden" }}>
                                 <MapView location={JSON.parse(incident.location)} />
                             </div>
                         </div>
 
                         {incident.status !== "CANCELLED" && (
-                            <div style={{ display: "flex", gap: "var(--space-md)", flexWrap: "wrap" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "var(--space-md)" }}>
                                 <button onClick={() => setIsEditing(true)} className="btn btn-secondary">
                                     Edytuj
                                 </button>
@@ -294,6 +270,35 @@ export default function IncidentDetailsPage() {
 
 
             </div>
+
+            {/* Sekcja admina — poza kartą */}
+            {isAdmin && (
+                <div className="card" style={{ marginTop: 'var(--space-lg)' }}>
+                    <h3 className="mb-md" style={{ fontSize: "var(--font-size-base)", fontWeight: 600 }}>Zarządzanie administratora</h3>
+                    <div className="admin-actions-grid">
+                        <button
+                            onClick={() => handleStatusChange("ACCEPTED")}
+                            className="btn"
+                            style={{ backgroundColor: "#16a34a", color: "white", borderColor: "#16a34a" }}
+                        >
+                            ✓ Zatwierdź
+                        </button>
+                        <button
+                            onClick={() => handleStatusChange("REJECTED")}
+                            className="btn"
+                            style={{ backgroundColor: "#dc2626", color: "white", borderColor: "#dc2626" }}
+                        >
+                            ✕ Odrzuć
+                        </button>
+                        <button
+                            onClick={() => handleStatusChange("ARCHIVED")}
+                            className="btn btn-secondary"
+                        >
+                            Archiwizuj
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -32,6 +32,11 @@ export const authOptions = {
                     throw new Error("Nieprawidłowy email lub hasło");
                 }
 
+                // Sprawdzamy czy konto nie zostało usunięte
+                if (user.deleted) {
+                    throw new Error("Nieprawidłowy email lub hasło");
+                }
+
                 // Porównujemy wpisane hasło z tym w bazie (które jest zaszyfrowane)
                 const isPasswordValid = await bcrypt.compare(
                     credentials.password,

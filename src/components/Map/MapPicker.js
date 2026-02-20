@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, useMapEvents, ZoomControl } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -286,7 +286,9 @@ export default function MapPicker({ onLocationSelect, initialLocation }) {
                 center={[position.lat, position.lng]}
                 zoom={13}
                 style={{ height: "400px", width: "100%", borderRadius: "var(--border-radius)" }}
+                zoomControl={false}
             >
+                <ZoomControl position="bottomleft" />
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
